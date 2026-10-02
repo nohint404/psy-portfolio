@@ -88,9 +88,11 @@ The paths below point to the application source files in this repository.
 
 ## Local development
 
-The application uses Node.js 22.18+ and npm (`package-lock.json`). From the repository root:
+The application uses Node.js 22.18+ and npm (`package-lock.json`). Clone this repository, then run:
 
 ```sh
+git clone https://github.com/nohint404/psy-portfolio.git
+cd psy-portfolio
 npm ci
 cp .env.example .env.local
 npm run dev
@@ -112,4 +114,4 @@ npm run github:snapshot
 
 ## License and image credits
 
-[`LICENSE`](LICENSE) applies GNU AGPL-3.0 to the repository’s covered code. It does not relicense Minecraft artwork, the personal skin, PsyStream branding, or third-party audio. Those retain their respective owners’ rights. Provenance for the included screenshot is in [`docs/readme/workshop.webp.provenance.json`](docs/readme/workshop.webp.provenance.json); source asset manifests live alongside the application assets in the application checkout.
+[`LICENSE`](LICENSE) applies GNU AGPL-3.0 to the repository’s covered code. It does not relicense Minecraft artwork, the personal skin, PsyStream branding, or third-party audio. Those retain their respective owners’ rights. Provenance for the included screenshot is in [`docs/readme/workshop.webp.provenance.json`](docs/readme/workshop.webp.provenance.json). Asset sources and provenance are recorded beside files under `public/`; those third-party works remain outside the AGPL code license.
