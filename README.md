@@ -38,3 +38,50 @@ I built my portfolio as a little Minecraft workshop rather than a row of softwar
 The room is not just a picture with hotspots. Each destination uses obstacle-aware routes from the character’s current position; the lever interaction reaches for its handle, grips, flips and releases it. The switch state persists when the panel closes. If WebGL cannot start, a captured room preview and the labeled object shelf remain available.
 
 The optional game is a separate, full-screen Canvas experience. It starts with a fixed authored village, then streams deterministic terrain in all directions. Generated chunks are cached within a bound; player-made changes and discoveries are saved. Progress stays in the browser, with validated import/export rather than a server account.
+
+## How the pieces fit
+
+The page is server-rendered around a client-side workshop. Public GitHub data is normalized on the server; interactive scenes load only where they are used. The portfolio view, 3D room and sandbox share one experience without sharing a simulation loop.
+
+```mermaid
+flowchart LR
+  Page[Next.js page] --> GH[GitHub data service]
+  GH --> API[GitHub REST API]
+  GH -. API unavailable .-> Snapshot[Checked-in public snapshot]
+  Page --> Workshop[Workshop client]
+  Workshop --> Scene[Three.js room / GSAP]
+  Workshop --> Dream[Canvas 2D sandbox]
+  Workshop --> Contact[Contact route]
+  Contact -. optional webhook .-> Discord[Discord]
+```
+
+### The decisions that shape it
+
+- **The room is functional UI.** One obstacle-aware route planner handles the character’s walks; the eight-object shelf is its keyboard/touch equivalent. Reduced-motion preferences skip travel and authored transitions.
+- **The GitHub feed is public by construction.** The server paginates repositories, normalizes selected public data, filters activity to the account owner, and uses a checked-in snapshot if the API is unavailable. An optional `GITHUB_TOKEN` stays server-side; private repository data is checked again before serialization.
+- **The hidden game keeps its own rules.** `lib/ninja-game.ts` owns simulation and save validation, `lib/ninja-world.ts` owns deterministic terrain, and `lib/ninja-render.ts` draws the pixel world. A bounded generated-chunk cache avoids storing every tile; versioned browser saves preserve player changes.
+- **The contact book does not fake a send.** `DISCORD_WEBHOOK_URL` is optional. Without it, the form returns an explicit unavailable response; the route also checks origin, validates input, and limits requests in-process.
+- **The world has multiple owners.** Vanilla Minecraft models and textures, the personal skin, PsyStream branding and source-labeled audio keep their own provenance. AGPL-3.0 applies to this project’s licensed code, not third-party artwork or audio.
+
+## How it is built
+
+- **Next.js 16 App Router, React 19 and TypeScript** render the portfolio and its server-side data routes.
+- **Three.js** draws the walkable workshop; **GSAP** coordinates character, camera and object interactions.
+- The hidden game uses **Canvas 2D**, keeping world simulation, deterministic terrain and rendering in separate modules.
+- **Radix Dialog** handles accessible panels and the game shell. Tailwind CSS 4 and local CSS provide the pixel-workshop styling.
+- GitHub data is fetched server-side, normalized before display and cached for 30 minutes. A checked-in public snapshot is the outage/rate-limit fallback; no private repository data is exposed.
+
+### Application source map
+
+The paths below point to the application source files in this repository.
+
+| Path | What lives there |
+| --- | --- |
+| `app/` | Next.js page, layout and `/api/github`, `/api/contact` routes |
+| `components/Workshop.tsx`, `components/Scene.tsx` | Portfolio experience and 3D room |
+| `components/NinjaDream.tsx` | Hidden sandbox interface and Canvas lifecycle |
+| `lib/ninja-world.ts`, `lib/ninja-game.ts`, `lib/ninja-render.ts` | Terrain generation, simulation/save validation, and drawing |
+| `lib/github-core.ts`, `lib/github.ts` | Public GitHub normalization and server-side cached fetch |
+| `config/portfolio.ts` | Explicitly featured public repositories |
+| `public/minecraft/`, `public/art/` | Bundled visuals and per-asset provenance |
+| `tests/` | Game, data-boundary, interaction and asset checks |
