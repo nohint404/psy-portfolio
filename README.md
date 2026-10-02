@@ -85,3 +85,31 @@ The paths below point to the application source files in this repository.
 | `config/portfolio.ts` | Explicitly featured public repositories |
 | `public/minecraft/`, `public/art/` | Bundled visuals and per-asset provenance |
 | `tests/` | Game, data-boundary, interaction and asset checks |
+
+## Local development
+
+The application uses Node.js 22.18+ and npm (`package-lock.json`). From the repository root:
+
+```sh
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The checked-in GitHub snapshot makes the page usable without API credentials. `GITHUB_TOKEN` is optional and server-only; do not use a `NEXT_PUBLIC_` token. `DISCORD_WEBHOOK_URL` is optional and enables message delivery; without it, the form reports that delivery is unavailable. `NEXT_PUBLIC_SITE_URL` sets the canonical and Open Graph origin.
+
+Useful checks and maintenance commands:
+
+```sh
+npm test
+npm run lint        # ESLint and TypeScript
+npm run build
+npm start           # serve the production build
+npm run github:snapshot
+```
+
+`vercel.json` configures the Next.js build. The live PsyStream project is linked above; this repository is the portfolio source.
+
+## License and image credits
+
+[`LICENSE`](LICENSE) applies GNU AGPL-3.0 to the repository’s covered code. It does not relicense Minecraft artwork, the personal skin, PsyStream branding, or third-party audio. Those retain their respective owners’ rights. Provenance for the included screenshot is in [`docs/readme/workshop.webp.provenance.json`](docs/readme/workshop.webp.provenance.json); source asset manifests live alongside the application assets in the application checkout.
