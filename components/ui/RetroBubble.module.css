@@ -1,0 +1,29 @@
+/* Adapted from RetroUI Bubble.module.css, BSD-3-Clause. */
+.balloon {
+  position: relative;
+  display: inline-block;
+  padding: 10px 16px;
+  margin: 8px 8px 24px;
+  background: var(--bubble-bg-color);
+  color: var(--ink);
+  border: 4px solid;
+  border-image: var(--bubble-border-image) 3 / 3 / 2 stretch;
+  font-family: var(--pixel);
+  font-size: 17px;
+  line-height: 1.4;
+}
+.balloon::before, .balloon::after { position: absolute; content: ""; left: 2rem; }
+.balloon::before {
+  bottom: -14px; width: 26px; height: 10px;
+  background: var(--bubble-bg-color);
+  border-right: 4px solid var(--bubble-border-color);
+  border-left: 4px solid var(--bubble-border-color);
+}
+.balloon::after {
+  bottom: -18px; width: 18px; height: 4px;
+  background: var(--bubble-bg-color);
+  box-shadow: -4px 0 var(--bubble-border-color), 4px 0 var(--bubble-border-color),
+    -4px 4px var(--bubble-bg-color), 0 4px var(--bubble-border-color),
+    -8px 4px var(--bubble-border-color), -4px 8px var(--bubble-border-color),
+    -8px 8px var(--bubble-border-color);
+}

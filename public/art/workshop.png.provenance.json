@@ -1,0 +1,17 @@
+{
+  "origin": "Browser capture of the current production workshop: corrected bed/floor UVs, floor-level lamp and real lever, and favicon/wordmark cinema poster. No command block.",
+  "source": [
+    "components/Scene.tsx",
+    "lib/workshop-room.ts",
+    "lib/minecraft.ts",
+    "public/minecraft/provenance.json",
+    "public/art/psymariux-skin.png",
+    "public/art/psystream.provenance.json"
+  ],
+  "dimensions": [
+    847,
+    520
+  ],
+  "sha256": "10c7c2e6aa1a882a30db8a76882a23ae52e697c83154d8f5c5e7aa6f61a5f2c8",
+  "rights": "Original room arrangement; Minecraft models, textures and personal skin retain their original ownership. PsyStream branding and the pictured website artwork retain their respective ownership. Not project-owned game or media artwork."
+}

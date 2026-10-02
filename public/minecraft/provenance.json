@@ -1,0 +1,146 @@
+{
+  "version": "Minecraft Java 1.21.4",
+  "origin": "Vanilla models and textures mirrored by PrismarineJS/minecraft-assets",
+  "modelsSource": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks_models.json",
+  "modelsSha256": "d2ed51404786f7cc7fffebc60e55f07f822dccb60fe4b38daa5bb78bea8a355b",
+  "rights": "Minecraft game artwork belongs to Mojang/Microsoft. Included at the user\u2019s request; not relicensed as project-owned or MIT artwork.",
+  "assets": {
+    "bookshelf.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/bookshelf.png",
+      "sha256": "a1c9dd1cdd60c60dbd285645af578e4e3f473704489ccab6d329071842f70197"
+    },
+    "campfire_fire.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/campfire_fire.png",
+      "sha256": "35d5e013ec297d0ff2e09cac67a35d5228d6c36a8e9b70209f89e86db0a06542"
+    },
+    "campfire_log.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/campfire_log.png",
+      "sha256": "f17e54bca739ad5e7b4bdf2f44f4e2f454658aae2a385acfaa0c5949e1693f42"
+    },
+    "campfire_log_lit.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/campfire_log_lit.png",
+      "sha256": "dcb53ea93adf74b78df5c5b0a225f08e9e1419e7eb8f79c15db3cd1d35761c94"
+    },
+    "cobblestone.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/cobblestone.png",
+      "sha256": "bcda95fdf5afa91747657aa198fc0b69ebf44141de30a718075f74045e9a5def"
+    },
+    "command_block_back.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/command_block_back.png",
+      "sha256": "78105193ebca07de3d9ff27548de38656d3557d7b2dd84facd0e58e3d5203e54"
+    },
+    "command_block_front.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/command_block_front.png",
+      "sha256": "e46b813ab2800da1a5cf6181416b2ce1edb706e214592cbbe994925f3472669c"
+    },
+    "command_block_side.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/command_block_side.png",
+      "sha256": "3eb1433272b66d6cf05897971a3ca74d77f14b1ae3f0658dba7d7ce10dc8664b"
+    },
+    "crafting_table_front.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/crafting_table_front.png",
+      "sha256": "16c23b5802c71aa439b9d5a5707d304f1cf84d45a08c146aa4078cd5073067f2"
+    },
+    "crafting_table_side.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/crafting_table_side.png",
+      "sha256": "c962364f8165a2702ceb42eed59f1983194e4b7fd0a08de8790617f6c06bbaab"
+    },
+    "crafting_table_top.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/crafting_table_top.png",
+      "sha256": "8046b35b6ed5696ec21a0135b8a897f35acd7f2500b6b2e4b5b28ae4d25ac76c"
+    },
+    "dirt.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/dirt.png",
+      "sha256": "1f0f0e619e7dfe683ea45b9254859f14b0ed5f1debdb242ea878828575be5bf0"
+    },
+    "flower_pot.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/flower_pot.png",
+      "sha256": "7c72119fc47918edeedb19d83e52ab3eb73953af03868780b02ae1249236f60d"
+    },
+    "furnace_front_on.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/furnace_front_on.png",
+      "sha256": "a4ff7cbdc6502673e9a2d61472a15673f608e70cbfc7b325a9473819906c73b9"
+    },
+    "furnace_side.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/furnace_side.png",
+      "sha256": "3e3673a0c87a636b51e6ceb33081dda1fd3c89fe0c013d69c0244487e3b65d52"
+    },
+    "furnace_top.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/furnace_top.png",
+      "sha256": "d92e36ac9025e4cb46e450ac3bd21692f50c54ebc9373c512530247fc1c2b65c"
+    },
+    "lectern_base.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/lectern_base.png",
+      "sha256": "7add44485f9aeb317237aecc1adb672f91d7a00274cb1ca2e709869b208229ad"
+    },
+    "lectern_front.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/lectern_front.png",
+      "sha256": "5c407f98f0dfad93d317e57641ff2776d4814c55fd7975a91ab46e82c3ca971a"
+    },
+    "lectern_sides.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/lectern_sides.png",
+      "sha256": "3cea60d4ed44868a058212efa6056252f209db22b2d033f34e41d1a9105dea7f"
+    },
+    "lectern_top.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/lectern_top.png",
+      "sha256": "a1b8f9b861ae3b722c4e572dd89db2fbec066a45fba28c603087033224958c71"
+    },
+    "oak_log.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/oak_log.png",
+      "sha256": "060c93128fb65aa350a84e4b6576e616c47d40211bbe537cfe923a81d072e30c"
+    },
+    "oak_log_top.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/oak_log_top.png",
+      "sha256": "62f38b25ae28b6c4842ee5a83f790394b1ec4d6c6f20dd52044394855346a2a7"
+    },
+    "oak_planks.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/oak_planks.png",
+      "sha256": "3a33db67a3ba30537d0890a5cb37c8087ca336be89cbb1393a71c23224e361a8"
+    },
+    "oak_sapling.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/oak_sapling.png",
+      "sha256": "964a13ebf4cabc1a11bc5afc890a03e15635a20c3d56608ed55c7e1b3daca0cb"
+    },
+    "redstone_dust_line0.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/redstone_dust_line0.png",
+      "sha256": "1d20106910b0413f8f4bc0fba0bf0041c88c4530e01bb5ee49a3dae25430c18a"
+    },
+    "redstone_lamp.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/redstone_lamp.png",
+      "sha256": "fdc0015961a6b5cf5ac0cf5c3f4117c70b65ee00cf66066a3ea51029e6d827ac"
+    },
+    "redstone_lamp_on.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/redstone_lamp_on.png",
+      "sha256": "97be660a3c69fa0d256ca32c10397cedd4ef20e41c328f5219e90fe3c5139c26"
+    },
+    "redstone_torch.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/redstone_torch.png",
+      "sha256": "160caba109123055dc002a7471439cb32502cbcb07074524be564782586872a6"
+    },
+    "torch.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/torch.png",
+      "sha256": "329db8f31720564ca9c6eeb3bafb98bb30a4d277e958e55806720cc01dbf296d"
+    },
+    "chest.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/entity/chest/normal.png",
+      "sha256": "8603c2a1b21497835eda0b48c4d6271f5ae179e9407724b4c340053b8fd5e1e3"
+    },
+    "book.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/items/writable_book.png",
+      "sha256": "181b670aafb03287849957ee882863c3924a2aaa826f3f44ab94bea906c54228"
+    },
+    "campfire.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/items/campfire.png",
+      "sha256": "9283c0e731db15be1095278b75a5d68b08bb39cd22d86ed02ab425219622b986"
+    },
+    "bed-red.png": {
+      "source": "https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/entity/bed/red.png",
+      "sha256": "4f2ec7ee54e7cea9d8d38105b77eb6c2003653131e409e3d3857065ba7554e1e",
+      "note": "Mojang/Microsoft artwork from the 1.21.4 client, same as other assets; fetched via mcasset mirror after the PrismarineJS 1.21.4 tree was pruned"
+    },
+    "lever.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/lever.png",
+      "sha256": "aff928c7f11f56fe4f41a4e0dc5365c067a5a33fa099e41f789cb053f6fe6403"
+    }
+  }
+}

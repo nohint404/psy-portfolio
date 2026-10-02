@@ -1,0 +1,10 @@
+{
+  "origin": "Rendered vanilla chest entity, closed/open hinged frames",
+  "source": [
+    "scripts/make-chest-sprites.mjs",
+    "lib/minecraft.ts",
+    "public/minecraft/chest.png"
+  ],
+  "frames": 10,
+  "rights": "Minecraft chest texture belongs to Mojang/Microsoft; see public/minecraft/provenance.json"
+}
