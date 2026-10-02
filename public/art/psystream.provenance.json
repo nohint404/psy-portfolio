@@ -1,0 +1,24 @@
+{
+  "source": "https://stream.psymariux.dev",
+  "capturedAt": "2026-10-01T16:20:08.686Z",
+  "notes": "Actual public wordmark, favicon and homepage screenshot. Shelf uses the unmodified favicon; room poster combines the favicon and wordmark inside an authored timber cinema frame, with no homepage miniature. Website artwork belongs to its respective owners; no public repository or private stack is implied.",
+  "assets": {
+    "psystream-wordmark.svg": {
+      "source": "https://stream.psymariux.dev/psystream-wordmark.svg",
+      "sha256": "4ae00b814cbb23b675473abdb3618df9edb51f8e53210b9fe3773f95af903f9c"
+    },
+    "psystream-preview.webp": {
+      "source": "https://stream.psymariux.dev",
+      "sha256": "e20e87c4fa1a9567e7b51d1e135fc69baa30ea78caae4f94faa537fb92b167d1"
+    },
+    "psystream-painting.png": {
+      "source": "https://stream.psymariux.dev/favicon.png?v=6",
+      "sha256": "d62ca74f83a145dfe34fcc7b48588c664b2ab38bf111d588143eafbe9a19a1e2",
+      "method": "192×128 cinema frame, real favicon and public wordmark, no screenshot"
+    },
+    "psystream-favicon.png": {
+      "source": "https://stream.psymariux.dev/favicon.png?v=6",
+      "sha256": "eb56f443960c5919842cff1ca99e48ce43ffc8addef410d43d3248cf0e81433a"
+    }
+  }
+}

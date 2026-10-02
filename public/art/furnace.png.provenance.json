@@ -1,0 +1,5 @@
+{
+  "origin": "Isometric thumbnail derived from vanilla Minecraft texture faces",
+  "source": "scripts/import-minecraft.py",
+  "rights": "Minecraft textures belong to Mojang/Microsoft; see public/minecraft/provenance.json"
+}

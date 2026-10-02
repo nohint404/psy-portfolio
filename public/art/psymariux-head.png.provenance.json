@@ -1,0 +1,6 @@
+{
+  "origin": "Front face and hat layer composited from the user's verified current skin",
+  "source": "public/art/psymariux-skin.png",
+  "method": "8x8 front (8,8), outer front (40,8), nearest-neighbor resize to 64x64",
+  "usage": "User-requested personal Minecraft identity"
+}

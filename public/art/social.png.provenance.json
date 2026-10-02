@@ -1,0 +1,5 @@
+{
+  "origin": "Original workshop social background with user-requested personal skin portrait",
+  "source": ["scripts/make-art.py", "public/art/psymariux-skin.png"],
+  "usage": "Original composition; personal skin provenance is recorded separately"
+}
