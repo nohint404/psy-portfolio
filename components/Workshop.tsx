@@ -111,6 +111,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
   const [dream, setDream] = useState(false), [dreamIntro, setDreamIntro] = useState(true), [dreamUnlocked, setDreamUnlocked] = useState(false);
   const [sound, setSound] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(false), [jukeboxOpen, setJukeboxOpen] = useState(false);
+  const [insertedRecord, setInsertedRecord] = useState<number | null>(null);
   const [activityFilter, setActivityFilter] = useState("commit");
   const [repositoryFilter, setRepositoryFilter] = useState("all");
   const [forgeName, setForgeName] = useState<string | null>(null);
@@ -330,7 +331,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
           <div className="room-wrap" ref={room}><div className="room-stage" aria-label="Interactive Minecraft developer workshop">
             {!ready && <img className="scene-static" src="/art/workshop.webp" alt="PsyMariux’s blue Minecraft character in a stone-and-wood developer workshop." width={847} height={520} fetchPriority="high" />}
             {!ready && !sceneFailed && <div className="room-loading"><FurnaceLoader label="Lighting the workshop" /></div>}
-            {mountScene && <Scene onSelect={completeVisit} selected={selected} lit={lit} suspended={dream} musicPlaying={musicPlaying} onReady={onReady} controllerRef={sceneController} onTravel={onTravel} onChidori={onChidori} onSeals={onSeals} onSleepChange={onSleepChange} />}
+            {mountScene && <Scene onSelect={completeVisit} selected={selected} lit={lit} suspended={dream} musicPlaying={musicPlaying} insertedRecord={insertedRecord} onReady={onReady} controllerRef={sceneController} onTravel={onTravel} onChidori={onChidori} onSeals={onSeals} onSleepChange={onSleepChange} />}
             <div className="room-ground" aria-hidden="true" />
           </div><div className="room-guide"><RetroBubble role="status">{travelling ? `Heading to ${stationInfo.find(s => s.id === travelling)?.name}…` : "Choose an object. I’ll take you there."}</RetroBubble>{travelling && <button className="text-button travel-cancel" onClick={() => sceneController.current?.reset()}>Cancel / Esc</button>}</div><div className="room-caption"><Icon name="code" /><span>Click to explore. Escape to return.</span></div></div>
         </section>
@@ -347,7 +348,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
       </main>
       <footer className="workshop-footer"><div className="footer-identity"><Art name="mascot" /><span>Psymariux</span></div><div className="campfire"><Art name="campfire" /><span>Thanks for stopping by.</span></div><External href={githubProfileUrl} className="quiet-link"><Icon name="github" />@{githubHandle}</External><span className="copyright">© {new Date().getFullYear()} Psymariux</span></footer>
     </div>
-    <Jukebox suspended={dream} available={entered && !dream && selected === null && !commandOpen} open={jukeboxOpen} onOpenChange={setJukeboxOpen} onPlaying={setMusicPlaying} />
+    <Jukebox suspended={dream} available={entered && !dream && selected === null && !commandOpen} open={jukeboxOpen} onOpenChange={setJukeboxOpen} onPlaying={setMusicPlaying} onRecordChange={setInsertedRecord} />
     <QuickNavigate open={commandOpen} onOpenChange={setCommandOpen} commands={commands} trigger={commandTrigger} />
     {dream && <NinjaDream sound={sound} intro={dreamIntro} onClose={closeDream} />}
     <Dialog.Root open={selected !== null} onOpenChange={value => { if (!value) closePanels(); }}><Dialog.Portal><Dialog.Overlay className="dialog-overlay" /><Dialog.Content className={`workshop-dialog dialog-${selected}`} onCloseAutoFocus={event => { event.preventDefault(); lastTrigger.current?.focus(); }}><div className="dialog-top"><Dialog.Title>{dialogTitle}</Dialog.Title><Dialog.Close className="icon-button" aria-label="Close workshop panel"><Icon name="close" /></Dialog.Close></div><Dialog.Description className="sr-only">{selected === "contact" ? "Write a private message to Psymariux." : "Explore Psymariux’s public development work. Press Escape to return to the workshop."}</Dialog.Description><div className="dialog-body">

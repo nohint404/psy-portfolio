@@ -4,9 +4,17 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { records, nextRecord, adjustVolume } from "../lib/jukebox.ts";
 
-test("jukebox volume levers step by five and stay within the media volume range", () => {
+test("jukebox volume values step by five and stay within the media volume range", () => {
   assert.equal(adjustVolume(20, -5), 15); assert.equal(adjustVolume(20, 5), 25);
   assert.equal(adjustVolume(0, -5), 0); assert.equal(adjustVolume(100, 5), 100);
+});
+
+test("jukebox keeps media lazy and exposes native volume and eject controls", () => {
+  const source = readFileSync("components/Jukebox.tsx", "utf8");
+  assert.match(source, /<audio ref=\{audio\} preload="none"/);
+  assert.match(source, /type="range" min="0" max="100" step="5"/);
+  assert.match(source, />Eject disc</);
+  assert.doesNotMatch(source, /Two records\. A quiet corner\./);
 });
 
 test("interactive disc buttons use unchanged vanilla sprites with provenance", () => {
