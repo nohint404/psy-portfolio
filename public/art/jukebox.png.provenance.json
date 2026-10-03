@@ -1,0 +1,9 @@
+{
+  "origin": "Isometric thumbnail from vanilla Minecraft Java 1.21.4 jukebox textures",
+  "source": [
+    "public/minecraft/jukebox_top.png",
+    "public/minecraft/jukebox_side.png"
+  ],
+  "sha256": "491fbc613925aa3c56c12a8804aff9e2cb4adc212ebc9820e094e93697a2eae5",
+  "rights": "Minecraft game artwork belongs to Mojang/Microsoft. Included at the user\u2019s request; not relicensed as project-owned or MIT artwork."
+}

@@ -1,15 +1,15 @@
 import { stationPositions } from "./workshop-room.ts";
 
-export type Station = "about" | "psystream" | "projects" | "skills" | "activity" | "furnace" | "contact" | "sleep";
+export type Station = "about" | "psystream" | "projects" | "skills" | "activity" | "furnace" | "contact" | "sleep" | "jukebox";
 export type Point = { x: number; z: number };
 export const home: Point = { x: .1, z: .2 };
 export const approaches: Record<Station, Point> = {
   about: home, projects: { x: 1.5, z: 2.7 }, skills: { x: -2.5, z: 2.7 },
   activity: { x: -.86, z: -.9 }, furnace: { x: 2.5, z: -1.15 }, contact: { x: 3.5, z: 2.7 },
-  sleep: { x: -3.5, z: -.15 }, psystream: { x: 1.5, z: -1.15 },
+  sleep: { x: -3.5, z: -.15 }, psystream: { x: 1.5, z: -1.15 }, jukebox: { x: -.5, z: 2.7 },
 };
 export const roomObstacles = [
-  ...(["projects", "skills", "activity", "furnace", "contact", "sleep"] as const).map(id => ({
+  ...(["projects", "skills", "activity", "furnace", "contact", "sleep", "jukebox"] as const).map(id => ({
     ...stationPositions[id], radiusX: id === "projects" ? .4375 : .5,
     radiusZ: id === "sleep" ? 1 : id === "projects" ? .4375 : .5,
   })),

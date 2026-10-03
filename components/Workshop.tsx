@@ -11,6 +11,7 @@ import ChestArt from "./ChestArt";
 import PixelReveal from "./PixelReveal";
 import PsyStream, { PsyStreamDetails } from "./PsyStream";
 import QuickNavigate from "./QuickNavigate";
+import Jukebox from "./Jukebox";
 import type { WorkshopCommand } from "@/lib/workshop-commands";
 import { PixelButton } from "./ui/PixelButton";
 import { RetroBubble } from "./ui/RetroBubble";
@@ -27,6 +28,7 @@ const stationInfo: { id: Station; name: string; action: string; art: string }[] 
   { id: "activity", name: "Redstone lamp", action: "Flip the lever / activity", art: "terminal" },
   { id: "contact", name: "Message book", action: "Get in touch", art: "book" },
   { id: "sleep", name: "Cozy bed", action: "Take a nap", art: "bed" },
+  { id: "jukebox", name: "Jukebox", action: "Sweden / Moog City", art: "jukebox" },
 ];
 function Art({ name, className = "", open = false }: { name: string; className?: string; open?: boolean }) {
   if (name === "chest") return <ChestArt open={open} className={className} />;
@@ -107,6 +109,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
   const sleepState = useRef(false), sleepEntries = useRef(0);
   const [dream, setDream] = useState(false), [dreamIntro, setDreamIntro] = useState(true), [dreamUnlocked, setDreamUnlocked] = useState(false);
   const [sound, setSound] = useState(false);
+  const [musicPlaying, setMusicPlaying] = useState(false);
   const [activityFilter, setActivityFilter] = useState("commit");
   const [repositoryFilter, setRepositoryFilter] = useState("all");
   const [forgeName, setForgeName] = useState<string | null>(null);
@@ -249,6 +252,13 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
     cancelChest();
     if (!ready && sleepState.current) onSleepChange(false);
     if (!preserveTrigger) { lastTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; sceneController.current?.reset(); }
+    if (id === "jukebox") {
+      setSelected(null); sceneController.current?.reset();
+      const player = document.getElementById("jukebox");
+      player?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      player?.focus({ preventScroll: true });
+      return;
+    }
     setProject(null); setActivity(null); setSelected(id); play(id);
   }, [play, cancelChest, ready, onSleepChange]);
   const closePanels = useCallback(() => { cancelChest(); stopRitual(); setSelected(null); setProject(null); setActivity(null); setSkill(null); }, [cancelChest, stopRitual]);
@@ -293,7 +303,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
   const forgeProject = activeProjects.find(p => p.name === forgeName) || activeProjects[0];
   const forgeCommit = forgeProject?.commits.find(c => c.author.toLowerCase() === "nohint404");
   const commands: WorkshopCommand[] = [
-    ...stationInfo.map(station => ({ id: station.id, label: station.name, detail: station.action, keywords: `${station.id} ${station.id === "activity" ? "github commits pull requests log lever leva attività" : station.id === "skills" ? "inventory languages tools crafting competenze" : station.id === "contact" ? "email message contatti" : station.id === "sleep" ? "night nap riposo letto" : station.id === "about" ? "profile developer nohint404 chi sono" : station.id === "projects" ? "repositories source progetti" : station.id === "furnace" ? "active work lavoro" : "stream cinema anime"}`, art: `/art/${station.art === "mascot" ? "psymariux-head" : station.art}.png`, run: () => visit(station.id) })),
+    ...stationInfo.map(station => ({ id: station.id, label: station.name, detail: station.action, keywords: `${station.id} ${station.id === "activity" ? "github commits pull requests log lever leva attività" : station.id === "skills" ? "inventory languages tools crafting competenze" : station.id === "contact" ? "email message contatti" : station.id === "sleep" ? "night nap riposo letto" : station.id === "about" ? "profile developer nohint404 chi sono" : station.id === "projects" ? "repositories source progetti" : station.id === "furnace" ? "active work lavoro" : station.id === "jukebox" ? "music musica c418 sweden moog city discs" : "stream cinema anime"}`, art: `/art/${station.art === "mascot" ? "psymariux-head" : station.art}.png`, run: () => visit(station.id) })),
     ...data.projects.map(p => ({ id: `repository:${p.name}`, label: p.name, detail: `${p.fork ? "Featured fork" : "Public repository"}${p.language ? ` / ${p.language}` : ""}`, keywords: `${p.description ?? ""} ${p.technologies.join(" ")}`, art: "/art/chest.png", run: () => openProject(p) })),
     ...(dreamUnlocked ? [{ id: "dream", label: "Resume dream", detail: "Return to your shinobi world", keywords: "ninja game sandbox shinobi gioco", art: "/art/bed.png", run: resumeDream }] : []),
   ];
@@ -303,7 +313,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
     <a className="skip-link" href="#projects" inert={!entered}>Skip to projects</a>
     <div className="site-shell" data-lights={lit ? "warm" : "dim"} inert={!entered || dream}>
       <header className="workshop-header"><a className="brand" href="#home" aria-label="Psymariux workshop home"><span className="italian-signature" aria-label="Italian signature"><i /><i /><i /></span><span>Psymariux<span className="brand-caption">developer workshop</span></span></a>
-        <div className="ambient-controls"><button ref={commandTrigger} className="icon-button command-toggle" onClick={showCommands} aria-label="Open quick navigation" aria-haspopup="dialog" aria-keyshortcuts="Control+k Meta+k" title="Quick navigation (Ctrl/Cmd+K)"><Icon name="search" /><kbd>Ctrl K</kbd></button>{dreamUnlocked && <button className="text-button dream-resume" onClick={resumeDream}>Resume dream</button>}<span className="ambience-label"><Icon name="fire" />A quiet place to build</span><button className="icon-button" onClick={toggleSound} aria-label={sound ? "Turn sound off" : "Turn sound on"} aria-pressed={sound} title={sound ? "Sound on" : "Sound off"}><Icon name={sound ? "volume-2" : "volume-x"} /></button><button className="icon-button" onClick={toggleNight} aria-label={sleeping ? "Wake Psymariux" : "Put Psymariux to sleep"} aria-pressed={sleeping} title={sleeping ? "Wake up" : "Night"}><Icon name={sleeping ? "sun" : "moon"} /></button></div>
+        <div className="ambient-controls"><button ref={commandTrigger} className="icon-button command-toggle" onClick={showCommands} aria-label="Open quick navigation" aria-haspopup="dialog" aria-keyshortcuts="Control+k Meta+k" title="Quick navigation (Ctrl/Cmd+K)"><Icon name="search" /><kbd>Ctrl K</kbd></button>{dreamUnlocked && <button className="text-button dream-resume" onClick={resumeDream}>Resume dream</button>}<span className="ambience-label"><Icon name="fire" />A quiet place to build</span><button className="icon-button" onClick={toggleSound} aria-label={sound ? "Turn sound effects off" : "Turn sound effects on"} aria-pressed={sound} title={sound ? "Sound effects on" : "Sound effects off"}><Icon name={sound ? "volume-2" : "volume-x"} /></button><button className="icon-button" onClick={toggleNight} aria-label={sleeping ? "Wake Psymariux" : "Put Psymariux to sleep"} aria-pressed={sleeping} title={sleeping ? "Wake up" : "Night"}><Icon name={sleeping ? "sun" : "moon"} /></button></div>
       </header>
       <main id="home">
         <section className="hero" aria-labelledby="welcome-heading">
@@ -311,11 +321,12 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
           <div className="room-wrap" ref={room}><div className="room-stage" aria-label="Interactive Minecraft developer workshop">
             {!ready && <img className="scene-static" src="/art/workshop.webp" alt="PsyMariux’s blue Minecraft character in a stone-and-wood developer workshop." width={847} height={520} fetchPriority="high" />}
             {!ready && !sceneFailed && <div className="room-loading"><FurnaceLoader label="Lighting the workshop" /></div>}
-            {mountScene && <Scene onSelect={completeVisit} selected={selected} lit={lit} suspended={dream} onReady={onReady} controllerRef={sceneController} onTravel={onTravel} onChidori={onChidori} onSeals={onSeals} onSleepChange={onSleepChange} />}
+            {mountScene && <Scene onSelect={completeVisit} selected={selected} lit={lit} suspended={dream} musicPlaying={musicPlaying} onReady={onReady} controllerRef={sceneController} onTravel={onTravel} onChidori={onChidori} onSeals={onSeals} onSleepChange={onSleepChange} />}
             <div className="room-ground" aria-hidden="true" />
           </div><div className="room-guide"><RetroBubble role="status">{travelling ? `Heading to ${stationInfo.find(s => s.id === travelling)?.name}…` : "Choose an object. I’ll take you there."}</RetroBubble>{travelling && <button className="text-button travel-cancel" onClick={() => sceneController.current?.reset()}>Cancel / Esc</button>}</div><div className="room-caption"><Icon name="code" /><span>Click to explore. Escape to return.</span></div></div>
         </section>
-        <nav className="station-shelf" aria-label="Workshop objects">{stationInfo.map(station => <button className={`station station-${station.art}`} key={station.id} onClick={event => { visit(station.id); particles(event); }} aria-haspopup={station.id === "sleep" ? undefined : "dialog"}><Art name={station.art} open={station.id === "projects" && (travelling === "projects" || selected === "projects")} /><span><strong>{station.name}</strong><small>{station.action}</small></span><Icon name="chevron-right" /></button>)}</nav>
+        <nav className="station-shelf" aria-label="Workshop objects">{stationInfo.map(station => <button className={`station station-${station.art}`} key={station.id} onClick={event => { visit(station.id); particles(event); }} aria-haspopup={station.id === "sleep" || station.id === "jukebox" ? undefined : "dialog"}><Art name={station.art} open={station.id === "projects" && (travelling === "projects" || selected === "projects")} /><span><strong>{station.name}</strong><small>{station.action}</small></span><Icon name="chevron-right" /></button>)}</nav>
+        <Jukebox suspended={dream} onPlaying={setMusicPlaying} />
         <PsyStream onDetails={() => open("psystream")} />
         <PixelReveal variant="chest"><section className="projects-section" id="projects" aria-labelledby="projects-heading"><div className="section-title"><Art name="chest" /><div><h2 id="projects-heading">A chest full of projects.</h2><p>Real repositories. A few finished builds. A few still on the workbench.</p></div><External href="https://github.com/nohint404" className="quiet-link">View GitHub</External></div>
           {data.status === "cached" && <p role="status" className="data-notice">GitHub is resting. Showing verified public data from {formatDate(data.fetchedAt)}.</p>}

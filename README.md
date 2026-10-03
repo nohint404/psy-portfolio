@@ -39,6 +39,12 @@ The room is not just a picture with hotspots. Each destination uses obstacle-awa
 
 The optional game is a separate, full-screen Canvas experience. It starts with a fixed authored village, then streams deterministic terrain in all directions. Generated chunks are cached within a bound; player-made changes and discoveries are saved. Progress stays in the browser, with validated import/export rather than a server account.
 
+## A quiet record
+
+A vanilla Minecraft jukebox in the room opens a timber-framed pixel miniplayer. C418’s **Sweden** and **Moog City** alternate at the end of each track; choose either disc, pause, skip or adjust the volume (20% by default).
+
+Music is off until you press Play, independent of interaction sound effects. Local MP3s load only on demand—no iframe or external player. Hiding the tab or entering the dream pauses playback without automatically restarting it. Track sources, hashes and rights caveats are recorded in `public/audio/`; the project’s code license does not cover these recordings and their redistribution license has not been independently verified.
+
 ## How the pieces fit
 
 The page is server-rendered around a client-side workshop. Public GitHub data is normalized on the server; interactive scenes load only where they are used. The portfolio view, 3D room and sandbox share one experience without sharing a simulation loop.
@@ -57,7 +63,7 @@ flowchart LR
 
 ### The decisions that shape it
 
-- **The room is functional UI.** One obstacle-aware route planner handles the character’s walks; the eight-object shelf is its keyboard/touch equivalent. Reduced-motion preferences skip travel and authored transitions.
+- **The room is functional UI.** One obstacle-aware route planner handles the character’s walks; the nine-object shelf is its keyboard/touch equivalent. Reduced-motion preferences skip travel and authored transitions.
 - **The GitHub feed is public by construction.** The server paginates repositories, normalizes selected public data, filters activity to the account owner, and uses a checked-in snapshot if the API is unavailable. An optional `GITHUB_TOKEN` stays server-side; private repository data is checked again before serialization.
 - **The hidden game keeps its own rules.** `lib/ninja-game.ts` owns simulation and save validation, `lib/ninja-world.ts` owns deterministic terrain, and `lib/ninja-render.ts` draws the pixel world. A bounded generated-chunk cache avoids storing every tile; versioned browser saves preserve player changes.
 - **The contact book does not fake a send.** `DISCORD_WEBHOOK_URL` is optional. Without it, the form returns an explicit unavailable response; the route also checks origin, validates input, and limits requests in-process.
@@ -80,6 +86,7 @@ The paths below point to the application source files in this repository.
 | `app/` | Next.js page, layout and `/api/github`, `/api/contact` routes |
 | `components/Workshop.tsx`, `components/Scene.tsx` | Portfolio experience and 3D room |
 | `components/NinjaDream.tsx` | Hidden sandbox interface and Canvas lifecycle |
+| `components/Jukebox.tsx` · `lib/jukebox.ts` | Opt-in local music controls and the two-record playlist |
 | `lib/ninja-world.ts`, `lib/ninja-game.ts`, `lib/ninja-render.ts` | Terrain generation, simulation/save validation, and drawing |
 | `lib/github-core.ts`, `lib/github.ts` | Public GitHub normalization and server-side cached fetch |
 | `config/portfolio.ts` | Explicitly featured public repositories |

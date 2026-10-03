@@ -18,7 +18,7 @@ for (let z = -2.5; z <= 2.5; z++) roomBlocks.push({ name: "oak_log", x: -4.5, y:
 export const stationPositions = {
   projects: { x: 1.5, z: 1.5 }, skills: { x: -2.5, z: 1.5 },
   activity: { x: -.5, z: -2.5 }, furnace: { x: 2.5, z: -2.5 }, contact: { x: 3.5, z: 1.5 },
-  sleep: { x: -3.5, z: -2 }, psystream: { x: 1.5, z: -2.975 },
+  sleep: { x: -3.5, z: -2 }, psystream: { x: 1.5, z: -2.975 }, jukebox: { x: -.5, z: 1.5 },
 };
 
 // Vanilla gait: straight rigid limbs, opposite arm/leg phases, driven by distance.

@@ -18,7 +18,7 @@ def download(path):
 
 models_bytes = download('blocks_models.json')
 all_models = json.loads(models_bytes)
-names = ['oak_planks', 'oak_log', 'cobblestone', 'crafting_table', 'furnace_on', 'bookshelf', 'lever', 'redstone_lamp', 'redstone_lamp_on', 'lectern', 'potted_oak_sapling', 'torch', 'redstone_torch', 'campfire']
+names = ['oak_planks', 'oak_log', 'cobblestone', 'crafting_table', 'furnace_on', 'bookshelf', 'lever', 'redstone_lamp', 'redstone_lamp_on', 'lectern', 'potted_oak_sapling', 'torch', 'redstone_torch', 'campfire', 'jukebox']
 
 def resolve(name):
     current = all_models[name]
@@ -82,6 +82,7 @@ def icon(name, top, left, front):
 def first(name):
     im = Image.open(out / (name + '.png')).convert('RGBA')
     return im.crop((0, 0, im.width, im.width))
+icon('jukebox', first('jukebox_top'), first('jukebox_side'), first('jukebox_side'))
 icon('craft', first('crafting_table_top'), first('crafting_table_side'), first('crafting_table_front'))
 icon('furnace', first('furnace_top'), first('furnace_side'), first('furnace_front_on'))
 icon('terminal', first('redstone_lamp_on'), first('redstone_lamp'), first('redstone_lamp_on'))
