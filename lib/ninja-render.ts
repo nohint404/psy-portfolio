@@ -4,7 +4,7 @@ import { spriteMotion, type SpriteMotion } from "./ninja-motion.ts";
 import { CHUNK_SIZE, biomeAt, villageTile, worldChunk, pointKey, type Biome } from "./ninja-world.ts";
 
 const biomeColors: Record<Biome, string> = { meadow: "#71b879", forest: "#63a879", marsh: "#7aaf98", dunes: "#d8b978", frost: "#cad9d5" };
-const mapColors = ["#71b879", "#e1c58b", "#487eb0", "#387858", "#8292a6", "#b88557", "#8292a6", "#b88557", "#e7a5b8", "#d8b978", "#9f7d97", "#9686b2", "#aec779", "#b88557", "#f5cb86", "#b88557", "#f5a665", "#9bcb76", "#ebc570", "#cad9d5", "#94cbd5", "#80664c", "#86ae6d"];
+const mapColors = ["#71b879", "#e1c58b", "#487eb0", "#387858", "#8292a6", "#b88557", "#8292a6", "#b88557", "#e7a5b8", "#d8b978", "#9f7d97", "#9686b2", "#aec779", "#b88557", "#f5cb86", "#b88557", "#f5a665", "#9bcb76", "#ebc570", "#cad9d5", "#94cbd5", "#80664c", "#86ae6d", "#c6ad79", "#a96358"];
 
 const palette = { ink: "#24364a", grass: "#71b879", deep: "#387858", light: "#b5d982", path: "#e1c58b", water: "#487eb0", wave: "#8bbdd0", stone: "#8292a6", violet: "#9686b2", wood: "#b88557", cream: "#f6e4b3" };
 let eyes: HTMLCanvasElement[] | undefined;
@@ -122,9 +122,13 @@ function decoration(ctx: CanvasRenderingContext2D, tile: number, x: number, y: n
   } else if (tile === 15) {
     box(ctx, "#70523e", x, y + 4, 16, 10); box(ctx, "#d4ae75", x, y + 2, 16, 5);
     box(ctx, "#f6d798", x + 1, y + 3, 14, 1); box(ctx, "#6d728c", x + 3, y, 7, 2); box(ctx, "#e0e5d4", x + 7, y - 1, 3, 1);
+  } else if (tile === 24) {
+    box(ctx, "#563f45", x, y + 1, 16, 15); box(ctx, "#a96358", x + 1, y + 2, 14, 13);
+    for (let row = 0; row < 3; row++) { box(ctx, "#e0ad82", x + 1, y + 2 + row * 5, 14, 1); box(ctx, "#704b4b", x + (row % 2 ? 5 : 9), y + 3 + row * 5, 1, 4); }
+    box(ctx, "#cf7d67", x + 2, y + 3, 5, 2); box(ctx, "#7d514e", x + 10, y + 9, 4, 2);
   }
 }
-export function drawWorld(ctx: CanvasRenderingContext2D, s: GameState, skin: HTMLImageElement, now: number, moving = false, reduced = false, freeze = 0, motions?: Map<string, SpriteMotion>, action?: { kind: string; started: number }) {
+export function drawWorld(ctx: CanvasRenderingContext2D, s: GameState, skin: HTMLImageElement, now: number, moving = false, reduced = false, freeze = 0, motions?: Map<string, SpriteMotion>, action?: { kind: string; started: number }, jumpStarted = -Infinity) {
   const hero = spriteMotion(motions, "player", s.x, s.y, now, reduced);
   const alive = allEnemies(s).filter(e => e.hp), ids = new Set(["player", ...alive.map(e => e.id ?? `village:${s.enemies.indexOf(e)}`)]);
   if (motions) for (const id of motions.keys()) if (!ids.has(id)) motions.delete(id);
@@ -135,9 +139,10 @@ export function drawWorld(ctx: CanvasRenderingContext2D, s: GameState, skin: HTM
   for (let row = -1; row <= 15; row++) for (let col = -1; col <= 20; col++) {
     const wx = Math.floor(camX) + col, wy = Math.floor(camY) + row, x = (wx - camX) * 16, y = (wy - camY) * 16, tile = tileAt(s, wx, wy);
     const biome = villageTile(wx, wy) ? wx < 17 && wy < 12 ? "forest" : "meadow" : biomeAt(s.world.seed, wx, wy);
-    box(ctx, tile === 1 ? palette.path : tile === 2 || tile === 7 ? palette.water : tile === 9 ? "#d8b978" : tile === 11 ? "#b3a19b" : tile === 19 ? biomeColors.frost : biomeColors[biome], x, y, 16, 16);
+    box(ctx, tile === 1 || tile === 23 ? palette.path : tile === 2 || tile === 7 ? palette.water : tile === 9 ? "#d8b978" : tile === 11 ? "#b3a19b" : tile === 19 ? biomeColors.frost : biomeColors[biome], x, y, 16, 16);
     if (tile === 19) { box(ctx, "#e8edde", x + 3, y + 7, 4, 1); box(ctx, "#a7c3c8", x + 10, y + 12, 2, 1); }
     if ((wx * 7 + wy * 11) % 3 === 0 && tile < 2) { box(ctx, tile === 1 ? "#c3a373" : "#478761", x + 3, y + 8, 1, 2); box(ctx, tile === 1 ? "#f4dca1" : palette.light, x + 4, y + 9, 2, 1); }
+    if (tile === 23) { box(ctx, "#846b54", x, y, 16, 1); box(ctx, "#846b54", x, y + 15, 16, 1); box(ctx, "#efd9a2", x + 2, y + 3, 5, 2); box(ctx, "#ad8d67", x + 9, y + 9, 5, 2); box(ctx, "#725b4c", x + 7, y + 5, 2, 1); }
     if (tile === 2 || tile === 7) {
       const drift = reduced ? 0 : Math.floor(now / 500) % 3;
       box(ctx, palette.wave, x + 2 + drift, y + 5, 7, 1); box(ctx, "#6499bd", x + 7 - drift, y + 12, 6, 1);
@@ -148,7 +153,7 @@ export function drawWorld(ctx: CanvasRenderingContext2D, s: GameState, skin: HTM
     }
     if ([12, 17, 21, 22].includes(tile)) { box(ctx, "#886846", x + 1, y + 1, 14, 14); for (let r = 0; r < 3; r++) { box(ctx, "#574b39", x + 2, y + 3 + r * 4, 12, 1); if (tile !== 21) { box(ctx, tile === 22 ? "#afd588" : "#9ecb75", x + 4, y + (tile === 22 ? 3 : 1) + r * 4, tile === 22 ? 1 : 3, tile === 22 ? 1 : 3); box(ctx, "#579262", x + 9, y + 2 + r * 4, tile === 22 ? 1 : 3, tile === 22 ? 1 : 3); } } }
     if (tile === 9 && (wx + wy) % 3 === 0) { box(ctx, "#8e8493", x + 4, y + 8, 3, 1); box(ctx, "#d2c2ad", x + 9, y + 4, 2, 1); }
-    if ([3, 4, 5, 6, 11, 13, 14, 15, 16, 18, 20].includes(tile)) drawables.push({ y: wy, draw: () => decoration(ctx, tile, x, y, biome) });
+    if ([3, 4, 5, 6, 11, 13, 14, 15, 16, 18, 20, 24].includes(tile)) drawables.push({ y: wy, draw: () => decoration(ctx, tile, x, y, biome) });
     if (tile === 10) { box(ctx, "#cdb890", x, y, 16, 16); box(ctx, "#826b62", x, y + 13, 16, 3); }
   }
   for (const h of houses) {
@@ -191,8 +196,9 @@ export function drawWorld(ctx: CanvasRenderingContext2D, s: GameState, skin: HTM
     } });
   });
   const [px, py] = xy(hero.x, hero.y), stride = !reduced && (hero.walking || !motions && moving) ? Math.round(Math.sin(motions ? hero.travel * Math.PI : now / 115) * 2) : 0;
-  const reach = !reduced && action && now - action.started < 220 && !["heal", "recall", "scroll"].includes(action.kind) ? 3 : 0;
-  drawables.push({ y: hero.y, draw: () => { box(ctx, "#3d765e", px + 2, py + 12, 12, 3); gamePlayer(ctx, skin, px + 8, py + 15, s.facing, stride, reach); } });
+  const jumpAge = now - jumpStarted, jumping = jumpAge >= 0 && jumpAge < 360, lift = jumping && !reduced ? Math.round(Math.sin(jumpAge / 360 * Math.PI) * 11) : 0;
+  const reach = !reduced && action && now - action.started < 220 && !["heal", "recall", "scroll", "jump"].includes(action.kind) ? 3 : 0;
+  drawables.push({ y: hero.y, draw: () => { const inset = jumping && !reduced ? Math.min(4, Math.round(lift / 3)) : 0; box(ctx, jumping ? "#294f47" : "#3d765e", px + 2 + inset, py + 12, 12 - inset * 2, 3); gamePlayer(ctx, skin, px + 8, py + 15 - lift, s.facing, stride, reach); if (jumping && reduced) { box(ctx, palette.cream, px + 3, py - 20, 10, 2); text(ctx, "JUMP", px - 1, py - 23, palette.cream, 6); } } });
   const [aimX, aimY] = xy(s.x + s.facing[0], s.y + s.facing[1]);
   // The ground cursor must not paint across a tall character's face.
   ctx.strokeStyle = "#f9e6b8"; ctx.lineWidth = 1; ctx.strokeRect(Math.round(aimX) + 1.5, Math.round(aimY) + 1.5, 13, 13);
@@ -205,8 +211,8 @@ export function drawWorld(ctx: CanvasRenderingContext2D, s: GameState, skin: HTM
   box(ctx, "#24364a", 3, 3, 236, 14); text(ctx, `${region(s.x, s.y, s.world.seed)} ${s.x},${s.y}`, 7, 13);
   box(ctx, "#24364a", 246, 3, 71, 14); text(ctx, daylight(s) ? "Daylight" : "Moonrise", 250, 13);
   const nearby = npcs.find(n => Math.abs(n.x - s.x) + Math.abs(n.y - s.y) <= 1);
-  if (nearby) { box(ctx, "#24364a", 3, 222, 190, 14); text(ctx, `E: talk to ${nearby.name}, ${nearby.role}`, 7, 232); }
-  else { const target = tileAt(s, s.x + s.facing[0], s.y + s.facing[1]), own = tileAt(s, s.x, s.y); const hint = own === 17 || target === 17 ? "E: harvest herbs + seed" : target === 18 ? "E: open ruin supplies" : target === 22 || own === 22 ? "Herbs growing · E: check" : nearbyCamp(s) ? "E: rest / set camp" : [3, 4, 8, 11, 20].includes(target) ? "E: gather · Q: build" : "Follow trails · Q: build"; box(ctx, "#24364a", 3, 222, 212, 14); text(ctx, hint, 7, 232); }
+  if (nearby) { box(ctx, "#24364a", 3, 222, 190, 14); text(ctx, `F: talk to ${nearby.name}, ${nearby.role}`, 7, 232); }
+  else { const target = tileAt(s, s.x + s.facing[0], s.y + s.facing[1]), own = tileAt(s, s.x, s.y); const hint = own === 17 || target === 17 ? "F: harvest herbs + seed" : target === 18 ? "F: open ruin supplies" : target === 22 || own === 22 ? "Herbs growing · F: check" : nearbyCamp(s) ? "F: rest / set camp" : [3, 4, 8, 11, 20, 24].includes(target) ? "F: gather · Q: build" : "Follow trails · Q: build"; box(ctx, "#24364a", 3, 222, 212, 14); text(ctx, hint, 7, 232); }
   if (freeze > 0) { ctx.strokeStyle = "#97dbe5"; ctx.lineWidth = 3; ctx.strokeRect(1.5, 1.5, 317, 237); sharingan(ctx, 302, 20, 12); }
 }
 export function drawIntro(ctx: CanvasRenderingContext2D, skin: HTMLImageElement, s: GameState, t: number, reduced: boolean) {

@@ -47,6 +47,24 @@ test("fractional camera motion draws only finite coordinates and prunes retired 
   assert.ok(target.rectangles.every(rect => rect.every(Number.isFinite))); assert.equal(JSON.stringify(s), before);
 });
 
+test("jump render visibly lifts the real skin while reduced motion keeps a static state label", () => {
+  const s = createGame(), loadedSkin = { complete: true, naturalWidth: 64 } as HTMLImageElement;
+  const grounded = surface(), airborne = surface(), reduced = surface();
+  drawWorld(grounded.ctx, s, loadedSkin, 180, false, false, 0, undefined, undefined, -Infinity);
+  drawWorld(airborne.ctx, s, loadedSkin, 180, false, false, 0, undefined, { kind: "jump", started: 0 }, 0);
+  const head = (target: ReturnType<typeof surface>) => target.images.find(([u, v, w, h]) => u === 8 && v === 8 && w === 8 && h === 8)!;
+  assert.ok(head(airborne)[5] < head(grounded)[5], "airborne skin is lifted above its ground shadow");
+  drawWorld(reduced.ctx, s, skin, 180, false, true, 0, undefined, { kind: "jump", started: 0 }, 0);
+  assert.ok(reduced.labels.some(label => label.value === "JUMP"), "reduced motion preserves jump feedback without an arc");
+});
+
+test("new trail and brick materials have deterministic readable pixel surfaces", () => {
+  const s = createGame(); setTile(s, s.x - 1, s.y, 23); setTile(s, s.x + 1, s.y, 24); const target = surface();
+  drawWorld(target.ctx, s, skin, 1000, false, true);
+  assert.ok(target.rectangles.some(([x, y, w, h]) => x === 146 && y === 115 && w === 5 && h === 2), "trail has pale inset pavers");
+  assert.ok(target.rectangles.some(([x, y, w, h]) => x === 176 && y === 113 && w === 16 && h === 15), "brick has an outlined wall face");
+});
+
 test("nearby and atlas maps follow the player while the village map remains anchored", () => {
   const s = createGame(); s.x = -500; s.y = 700; setTile(s, s.x, s.y, 0);
   for (const mode of ["local", "atlas", "village"] as const) {
