@@ -109,7 +109,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
   const sleepState = useRef(false), sleepEntries = useRef(0);
   const [dream, setDream] = useState(false), [dreamIntro, setDreamIntro] = useState(true), [dreamUnlocked, setDreamUnlocked] = useState(false);
   const [sound, setSound] = useState(false);
-  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [musicPlaying, setMusicPlaying] = useState(false), [jukeboxOpen, setJukeboxOpen] = useState(false);
   const [activityFilter, setActivityFilter] = useState("commit");
   const [repositoryFilter, setRepositoryFilter] = useState("all");
   const [forgeName, setForgeName] = useState<string | null>(null);
@@ -253,10 +253,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
     if (!ready && sleepState.current) onSleepChange(false);
     if (!preserveTrigger) { lastTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; sceneController.current?.reset(); }
     if (id === "jukebox") {
-      setSelected(null); sceneController.current?.reset();
-      const player = document.getElementById("jukebox");
-      player?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-      player?.focus({ preventScroll: true });
+      setSelected(null); sceneController.current?.reset(); setJukeboxOpen(true);
       return;
     }
     setProject(null); setActivity(null); setSelected(id); play(id);
@@ -325,8 +322,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
             <div className="room-ground" aria-hidden="true" />
           </div><div className="room-guide"><RetroBubble role="status">{travelling ? `Heading to ${stationInfo.find(s => s.id === travelling)?.name}…` : "Choose an object. I’ll take you there."}</RetroBubble>{travelling && <button className="text-button travel-cancel" onClick={() => sceneController.current?.reset()}>Cancel / Esc</button>}</div><div className="room-caption"><Icon name="code" /><span>Click to explore. Escape to return.</span></div></div>
         </section>
-        <nav className="station-shelf" aria-label="Workshop objects">{stationInfo.map(station => <button className={`station station-${station.art}`} key={station.id} onClick={event => { visit(station.id); particles(event); }} aria-haspopup={station.id === "sleep" || station.id === "jukebox" ? undefined : "dialog"}><Art name={station.art} open={station.id === "projects" && (travelling === "projects" || selected === "projects")} /><span><strong>{station.name}</strong><small>{station.action}</small></span><Icon name="chevron-right" /></button>)}</nav>
-        <Jukebox suspended={dream} onPlaying={setMusicPlaying} />
+        <nav className="station-shelf" aria-label="Workshop objects">{stationInfo.filter(station => station.id !== "jukebox").map(station => <button className={`station station-${station.art}`}  key={station.id} onClick={event => { visit(station.id); particles(event); }} aria-haspopup={station.id === "sleep" || station.id === "jukebox" ? undefined : "dialog"}><Art name={station.art} open={station.id === "projects" && (travelling === "projects" || selected === "projects")} /><span><strong>{station.name}</strong><small>{station.action}</small></span><Icon name="chevron-right" /></button>)}</nav>
         <PsyStream onDetails={() => open("psystream")} />
         <PixelReveal variant="chest"><section className="projects-section" id="projects" aria-labelledby="projects-heading"><div className="section-title"><Art name="chest" /><div><h2 id="projects-heading">A chest full of projects.</h2><p>Real repositories. A few finished builds. A few still on the workbench.</p></div><External href="https://github.com/nohint404" className="quiet-link">View GitHub</External></div>
           {data.status === "cached" && <p role="status" className="data-notice">GitHub is resting. Showing verified public data from {formatDate(data.fetchedAt)}.</p>}
@@ -339,6 +335,7 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
       </main>
       <footer className="workshop-footer"><div className="footer-identity"><Art name="mascot" /><span>Psymariux<small>A little workshop. Always something to build.</small></span></div><div className="campfire"><Art name="campfire" /><span>Thanks for stopping by.</span></div><External href="https://github.com/nohint404" className="quiet-link"><Icon name="github" />@nohint404</External><span className="copyright">© {new Date().getFullYear()} Psymariux</span></footer>
     </div>
+    <Jukebox suspended={dream} available={entered && !dream && selected === null && !commandOpen} open={jukeboxOpen} onOpenChange={setJukeboxOpen} onPlaying={setMusicPlaying} />
     <QuickNavigate open={commandOpen} onOpenChange={setCommandOpen} commands={commands} trigger={commandTrigger} />
     {dream && <NinjaDream sound={sound} intro={dreamIntro} onClose={closeDream} />}
     <Dialog.Root open={selected !== null} onOpenChange={value => { if (!value) closePanels(); }}><Dialog.Portal><Dialog.Overlay className="dialog-overlay" /><Dialog.Content className={`workshop-dialog dialog-${selected}`} onCloseAutoFocus={event => { event.preventDefault(); lastTrigger.current?.focus(); }}><div className="dialog-top"><Dialog.Title>{dialogTitle}</Dialog.Title><Dialog.Close className="icon-button" aria-label="Close workshop panel"><Icon name="close" /></Dialog.Close></div><Dialog.Description className="sr-only">{selected === "contact" ? "Write a private message to Psymariux." : "Explore Psymariux’s public development work. Press Escape to return to the workshop."}</Dialog.Description><div className="dialog-body">
