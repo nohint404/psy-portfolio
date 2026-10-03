@@ -141,6 +141,14 @@
     "lever.png": {
       "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/lever.png",
       "sha256": "aff928c7f11f56fe4f41a4e0dc5365c067a5a33fa099e41f789cb053f6fe6403"
+    },
+    "jukebox_top.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/jukebox_top.png",
+      "sha256": "846ea82ea7764212dbe90528513399cb409f4ec9edf514e8e1b97c85295bfacc"
+    },
+    "jukebox_side.png": {
+      "source": "https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.4/blocks/jukebox_side.png",
+      "sha256": "4f1d496c7ed21c63382fb517527549961252283221c837c1850761bc98eaa82f"
     }
   }
 }
