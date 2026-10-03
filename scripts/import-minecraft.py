@@ -107,4 +107,10 @@ with urllib.request.urlopen(bed_source, timeout=30) as response:
     bed_bytes = response.read()
 (root / 'public/art/bed.png').write_bytes(bed_bytes)
 (root / 'public/art/bed.png.provenance.json').write_text(json.dumps({'origin': 'Unmodified official Minecraft Bedrock red-bed inventory sprite', 'source': bed_source, 'sha256': hashlib.sha256(bed_bytes).hexdigest(), 'rights': provenance['rights']}, indent=2) + '\n')
+for name, vanilla in [('disc-sweden', 'music_disc_13'), ('disc-moog-city', 'music_disc_cat')]:
+    source = base + 'items/' + vanilla + '.png'
+    with urllib.request.urlopen(source, timeout=30) as response:
+        data = response.read()
+    (root / f'public/art/{name}.png').write_bytes(data)
+    (root / f'public/art/{name}.png.provenance.json').write_text(json.dumps({'origin': 'Unmodified vanilla Minecraft Java 1.21.4 music disc inventory icon, used as a UI control only', 'source': source, 'sha256': hashlib.sha256(data).hexdigest(), 'rights': 'Minecraft artwork belongs to Mojang/Microsoft; not covered by the project code license. This control icon does not imply that the selected C418 track is the in-game disc recording.'}, indent=2) + '\n')
 print(f'Imported {len(models)} vanilla models and {len(provenance["assets"])} textures.')
