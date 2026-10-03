@@ -1,4 +1,4 @@
-import { githubHandle, featuredRepos, activityWindowDays, maxCommitsPerRepository, maxPullRequestsPerRepository } from "../config/portfolio.ts";
+import { githubHandle, isDeveloperAuthor, featuredRepos, activityWindowDays, maxCommitsPerRepository, maxPullRequestsPerRepository } from "../config/portfolio.ts";
 
 export type Commit = { kind: "commit"; repository: string; sha: string; message: string; author: string; date: string; url: string; branch: string };
 export type PullRequest = { kind: "pr"; repository: string; number: number; title: string; state: string; date: string; url: string; author: string };
@@ -97,7 +97,7 @@ async function getTechnologies(api: Api, repo: RawRepository, languages: Record<
 export function getRecentActivity(projects: Project[], since?: string) {
   const unique = new Map<string, Commit | PullRequest>();
   for (const project of projects) for (const item of [...project.commits, ...project.pullRequests]) {
-    if (item.author.toLowerCase() === githubHandle && (!since || item.date >= since)) unique.set(item.url, item);
+    if (isDeveloperAuthor(item.author) && (!since || item.date >= since)) unique.set(item.url, item);
   }
   const counts = new Map<string, number>();
   return [...unique.values()].sort((a, b) => b.date.localeCompare(a.date)).filter(item => {
@@ -109,7 +109,7 @@ export function getRecentActivity(projects: Project[], since?: string) {
 export function getDeveloperStats(repos: RawRepository[], projects: Project[], since: string) {
   const languages: Record<string, number> = {};
   for (const p of projects) for (const [name, bytes] of Object.entries(p.languages)) languages[name] = (languages[name] || 0) + bytes;
-  return { publicRepositories: repos.length, languages: Object.entries(languages).map(([name, bytes]) => ({ name, bytes })).sort((a, b) => b.bytes - a.bytes), recentlyActive: projects.filter(p => p.commits.some(c => c.date >= since && c.author.toLowerCase() === githubHandle)).map(p => p.name) };
+  return { publicRepositories: repos.length, languages: Object.entries(languages).map(([name, bytes]) => ({ name, bytes })).sort((a, b) => b.bytes - a.bytes), recentlyActive: projects.filter(p => p.commits.some(c => c.date >= since && isDeveloperAuthor(c.author))).map(p => p.name) };
 }
 export async function buildPortfolio(api: Api, now = new Date()): Promise<PortfolioData> {
   const repos = await getRepositories(api);

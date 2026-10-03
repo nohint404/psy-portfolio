@@ -1,9 +1,19 @@
 {
   "projects": [
     {
+      "latestCommit": {
+        "kind": "commit",
+        "repository": "Icarus-Launcher",
+        "sha": "6cb04e002bfe01ff08630a3277f197215715400e",
+        "message": "fix(ci): provision JDK 17 for Linux app build (Gradle 9 requires JVM 17+)",
+        "author": "psymariux",
+        "date": "2026-07-31T15:37:52Z",
+        "url": "https://github.com/psymariux/Icarus-Launcher/commit/6cb04e002bfe01ff08630a3277f197215715400e",
+        "branch": "main"
+      },
       "name": "Icarus-Launcher",
       "description": "A Modrinth App's fork made for the Taxphobia Community",
-      "url": "https://github.com/nohint404/Icarus-Launcher",
+      "url": "https://github.com/psymariux/Icarus-Launcher",
       "homepage": "https://fraa2a.top/",
       "language": "Rust",
       "languages": {
@@ -44,7 +54,11 @@
         "Python",
         "NSIS",
         "Dockerfile",
-        "MDX"
+        "MDX",
+        "Tokio",
+        "Serde",
+        "Reqwest",
+        "Tauri"
       ],
       "commits": [],
       "pullRequests": [],
@@ -52,7 +66,7 @@
         {
           "name": "Icarus 0.2.9 Wayland fix build 1",
           "date": "2026-07-31T06:52:52Z",
-          "url": "https://github.com/nohint404/Icarus-Launcher/releases/tag/wayland-fix-0.2.9.1"
+          "url": "https://github.com/psymariux/Icarus-Launcher/releases/tag/wayland-fix-0.2.9.1"
         }
       ],
       "openIssues": 0,
@@ -60,9 +74,19 @@
       "unavailable": []
     },
     {
+      "latestCommit": {
+        "kind": "commit",
+        "repository": "spotatui",
+        "sha": "f99254bca451e2e8fd19d0269c8a87c71dda3512",
+        "message": "fix(network): handle Development Mode playlist 403s",
+        "author": "nohint404",
+        "date": "2026-09-22T02:23:33Z",
+        "url": "https://github.com/psymariux/spotatui/commit/f99254bca451e2e8fd19d0269c8a87c71dda3512",
+        "branch": "main"
+      },
       "name": "spotatui",
       "description": "A fast, standalone terminal music player in Rust: native Spotify streaming plus local, Subsonic, radio, Qobuz and Youtube sources",
-      "url": "https://github.com/nohint404/spotatui",
+      "url": "https://github.com/psymariux/spotatui",
       "homepage": "https://spotatui.com/",
       "language": "Rust",
       "languages": {
@@ -93,7 +117,12 @@
         "Nix",
         "HTML",
         "Batchfile",
-        "Lua"
+        "Lua",
+        "Tokio",
+        "Serde",
+        "Ratatui",
+        "Reqwest",
+        "Crossterm"
       ],
       "commits": [
         {
@@ -103,7 +132,7 @@
           "message": "fix(network): handle Development Mode playlist 403s",
           "author": "nohint404",
           "date": "2026-09-22T02:23:33Z",
-          "url": "https://github.com/nohint404/spotatui/commit/f99254bca451e2e8fd19d0269c8a87c71dda3512",
+          "url": "https://github.com/psymariux/spotatui/commit/f99254bca451e2e8fd19d0269c8a87c71dda3512",
           "branch": "main"
         },
         {
@@ -113,7 +142,7 @@
           "message": "fix(native): guard librespot paths by sink owner (#534)\n\n# Summary\n\nWhile Local Files, Subsonic, Internet Radio, YouTube or Qobuz played,\nthe paused Spotify session could still act. A reconnect restored the old\nSpotify track over the source, the load watchdog rebuilt the player, a\nlate end-of-track event skipped the audible track, the shuffle session\nmoved or reloaded at the other source's position, and a transfer to an\nexternal device started a second player. This PR makes every native path\nask who owns the sink. It changes no lifecycle: librespot is still only\npaused, never shut down.\n\nWhat changed:\n\n1. Every hand-over of the sink away from librespot goes through\n`App::pause_native_playback`, which also clears the native play intent.\nA rebuild under another owner now comes back idle. The two paths that\nload librespot again (`play_queued_spotify`, the shuffled queue resume)\nre-arm the intent, because the stall watchdog disarms on a false intent.\n2. A queued track from another source claims the sink for its download\nand drops a Spotify queue slot that it skips. The queue releases the\nclaim only where no decoded context resumes, because only a source start\nsets the claim and a resumed context must keep it for a later device\nloss.\n3. Two predicates, `App::native_should_drive()` and\n`App::native_context_should_drive()`, guard the recovery request, the\nparked start replay, both watchdogs, the end-of-track handler and its\ncontinuation, the restore, the idle device reconcile, the recovery\nroutes and the stray-`Playing` guard, which knew only the queue before.\nThe rebuild itself is never refused: every sender removes the player\nbefore it sends, so a refusal there loses the backend.\n4. The shuffle session ignores librespot events and refuses its lap\nreshuffle, its toggle reload and its queue resume under another owner. A\ncontext fetch that finishes there loads paused at position 0. The\npagination walk stops when its session is gone or replaced.\n5. `resume_or_finish` takes t",
           "author": "LargeModGames",
           "date": "2026-09-19T18:59:23Z",
-          "url": "https://github.com/nohint404/spotatui/commit/91fd6b36f5b0f6081cf0aebd8e1471f71fcee532",
+          "url": "https://github.com/psymariux/spotatui/commit/91fd6b36f5b0f6081cf0aebd8e1471f71fcee532",
           "branch": "main"
         },
         {
@@ -123,7 +152,7 @@
           "message": "feat(sync): playlist sync across sources (#533)\n\n# Summary\n\nPlaylist sync across sources: pick a playlist as the master and mirror\nit onto Spotify, Qobuz, Subsonic or YouTube. The master wins: additions\nland on every mirror in master order, removals follow, a track the sync\nnever added is never touched.\n\n- `core/playlist_sync/`: the pure engine (`plan`, `pick_candidate`, the\nmatch cache), the report types, and the store `playlist_sync.yml` in the\nstate dir.\n- `infra/playlist_sync/`: one client per source behind a `SyncClient`\ntrait. Spotify reads `playlists/{id}/items` under both item spellings\nand pages on `next`; Qobuz and Subsonic search their catalogs with\nISRC-first matching; YouTube mirrors into the local\n`youtube_playlists.yml` through yt-dlp searches with a two-tier channel\nrule.\n- Runs at TUI startup, from `s` on the new Playlist sync screen, from\nthe mirror picker after a link, and from `spotatui sync [--link NAME]\n[--dry-run]`. Adds go out in batches of ten with a checkpoint save after\neach, so a run cut short resumes. A startup run keeps last time's \"no\ncandidate\" verdicts; a manual run searches them again.\n- `m` on a sidebar playlist opens the mirror picker. It adopts a\nplaylist of the same name on the mirror source when one exists, pairs\nits rows with the master before any search, and only creates a new\nplaylist otherwise.\n- Four `Action` variants, `Capability::PlaylistSync`,\n`LibraryTarget::PlaylistSync`, two dialogs, one screen, and the `sync`\nsubcommand. Docs page `docs/playlist-sync.md`.\n\n# Testing\n\n- `cargo fmt --all -- --check`: clean\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`: clean\n- `cargo test --no-default-features --features telemetry,tui`: 1067\npassed\n- `cargo clippy --no-default-features --features telemetry -- -D\nwarnings`: clean\n- `cargo clippy --no-default-features --features\ntelemetry,tui,qobuz,subsonic,youtube,internet-radio,local-files -- -D\nwarnings`: clean\n- `cargo test --no-default-features --fe",
           "author": "LargeModGames",
           "date": "2026-09-17T16:36:24Z",
-          "url": "https://github.com/nohint404/spotatui/commit/648812f7743f1b79d5572755a15a1e4b45e5e03f",
+          "url": "https://github.com/psymariux/spotatui/commit/648812f7743f1b79d5572755a15a1e4b45e5e03f",
           "branch": "main"
         },
         {
@@ -133,7 +162,7 @@
           "message": "fix shuffle track start time shift (#531)\n\n# Summary\n\nFix native Spotify shuffle carrying the previous song’s playback\nposition into a newly selected song. Pending shuffle reloads now retain\ntheir intended seek position instead of reading potentially stale global\nplayback progress.\n\n# Testing\n\n  - `cargo fmt --all -- --check`\n- `cargo clippy --locked --no-default-features --features telemetry,tui\n-- -D warnings`\n  - `cargo test --locked --no-default-features --features telemetry,tui`\n  - `cargo clippy --locked -- -D warnings` \n  - `cargo test --locked`\n  - `cargo test --locked native_shuffle` \n  - `tools/check_gates_ratchet.sh origin/main`\n\n# Additional notes\n\nOnly native Spotify playback with client-side shuffle is affected.\nExternal Spotify Connect devices and alternative-source players are\nunchanged.\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n\n## Summary by CodeRabbit\n\n- **Bug Fixes**\n- Improved native shuffle reloading to preserve the correct playback\nposition when continuing a track.\n- Prevented newly loaded tracks from inheriting stale playback progress.\n- Improved handling of shuffle reloads during playback so track and\nseek-position updates remain synchronized.\n\n- **Tests**\n- Added coverage for shuffle reloads that confirm both the selected\ntrack and playback position.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
           "author": "shilicioo",
           "date": "2026-09-16T15:15:20Z",
-          "url": "https://github.com/nohint404/spotatui/commit/97aba0e63c49f9f98f16c5cef1221c780fcc9fed",
+          "url": "https://github.com/psymariux/spotatui/commit/97aba0e63c49f9f98f16c5cef1221c780fcc9fed",
           "branch": "main"
         },
         {
@@ -143,7 +172,7 @@
           "message": "fix macos media keys behaviour (#528)\n\n# Summary\nFixes #527 \nIn 0.42, a Windows stack-overflow fix moved spotatui’s runtime off the\nmain thread on every platform. That left macOS pumping a worker thread’s\nrun loop, so media-key commands went to Apple Music. This change\nrestores main-thread execution on macOS. Windows config not affected.\n\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n\n## Summary by CodeRabbit\n\n- **Bug Fixes**\n- Improved macOS compatibility for media key handling by ensuring the\napplication runs on the required main thread.\n- Prevented potential stack overflow issues in Windows debug builds by\nrunning the application with an appropriately sized stack.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
           "author": "shilicioo",
           "date": "2026-09-15T10:03:06Z",
-          "url": "https://github.com/nohint404/spotatui/commit/dc9c0abd8573f40666286f72bba9f6d81ced41c2",
+          "url": "https://github.com/psymariux/spotatui/commit/dc9c0abd8573f40666286f72bba9f6d81ced41c2",
           "branch": "main"
         },
         {
@@ -153,7 +182,7 @@
           "message": "add optional image dithering feature (#526)\n\n# Summary\nImplements #525 \nAdds opt-in, two-color cover art dithering to the playbar, full-screen\nview, and plugin widgets. Stucki is the default, with Bayer and Atkinson\navailable. Cover art is processed from the original image off the render\nloop, and cached masks can be recolored as the theme changes.\n\n# Testing\n  - cargo fmt --all - passed\n- cargo test --locked --no-default-features --features\ntelemetry,tui,cover-art --quiet - 1,039 passed\n- cargo clippy --locked --no-default-features --features\ntelemetry,tui,cover-art -- -D warnings - passed\n  - git diff --check - passed\n\n# Additional notes\nDithering remains off by default and does not bypass terminal cover art\nrequirements.\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n## Summary by CodeRabbit\n\n- **New Features**\n  - Added optional two-color cover-art dithering for supported builds.\n- Configure the algorithm (Stucki, Bayer 8×8, or Atkinson), pixel scale,\nand accent color.\n- Dithered artwork appears in the playbar, full-screen view, and plugin\nwidgets, including basic-terminal fallback rendering.\n- Accent colors can follow the current theme or use a custom RGB/named\ncolor.\n\n- **Documentation**\n- Added configuration examples and usage details for cover-art dithering\nand rendering behavior.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
           "author": "shilicioo",
           "date": "2026-09-15T06:28:57Z",
-          "url": "https://github.com/nohint404/spotatui/commit/6218f260199118c2dfa1364a70a4aee5844a31c5",
+          "url": "https://github.com/psymariux/spotatui/commit/6218f260199118c2dfa1364a70a4aee5844a31c5",
           "branch": "main"
         },
         {
@@ -163,7 +192,7 @@
           "message": "fix macos media keys behaviour",
           "author": "shilicioo",
           "date": "2026-09-14T21:09:57Z",
-          "url": "https://github.com/nohint404/spotatui/commit/45bb60601c079f5d5cb97f9f22271b97caf883d1",
+          "url": "https://github.com/psymariux/spotatui/commit/45bb60601c079f5d5cb97f9f22271b97caf883d1",
           "branch": "main"
         },
         {
@@ -173,7 +202,7 @@
           "message": "refactor: feature aliasing (#523)\n\n# Summary\nthis aims to solve #494, by adding some \"meta-features\". meta-features\nindicates empty cargo features, referenced by other \"real\" ones. when\ninserting `#[cfg(feature = \"meta-feature1\")]` is the equivalent of\n`#[cfg(any(feature = \"f1\", feature = \"f2\", ...))]`. this simplifies\ncomplex feature gates.\n\nthe added features are the following:\n- `audio-decode-queue`: `qobuz`, `youtube`, `local-files`, `subsonic`\naudio features that needs to be decoded using `rodio`, but also supports\na non-infinite (unlike internet-radio) queue.\n- `queue`: `audio-decode-queue`, `streaming` \n  features supporting a non-infinite queue.\n- `queue-download`: `subsonic`, `youtube`, `qobuz`\nfeatures that needs full file download before playback that also\nsupports non-infinite queue.\n- ~~`onboarding`: `local-files`, `subsonic`, `youtube`\n  features that requires onboarding.~~\n\n# Testing\ni did run `cargo {clippy,test} --no-default-features` on the following\nfeature sets: empty (core only), each source on its own (`streaming`,\n`qobuz`, `youtube`, `local-files`, `subsonic`), each source with\n`streaming`, each source with `streaming` and `tui`.\neverything passed.\n\nedit: removed `onboarding` feature, as it was used only once and it was\nconfusing.\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n## Summary by CodeRabbit\n\n* **Refactor**\n* Consolidated playback, audio decoding, queue, and download feature\nconfiguration for more consistent builds across supported sources.\n* Updated queue and playback components to use unified capability\nsettings while preserving runtime playback behavior.\n* Improved feature-specific handling for queue downloads, playback\nquality, and suspended-context previews.\n\n* **Tests**\n* Qobuz playback tests now report failures when playback cannot be\nstarted.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
           "author": "topongo",
           "date": "2026-09-13T17:42:34Z",
-          "url": "https://github.com/nohint404/spotatui/commit/2a8d22b2e34d21882f7deb324decbb8a837830a2",
+          "url": "https://github.com/psymariux/spotatui/commit/2a8d22b2e34d21882f7deb324decbb8a837830a2",
           "branch": "main"
         },
         {
@@ -183,7 +212,7 @@
           "message": "fix(playback): claim the sink before a source starts (#522)\n\n# Summary\n\nA decoded source (Local Files, Subsonic, Internet Radio, YouTube, Qobuz)\npaused librespot first and published its session only when the download,\nthe stream probe or the decode succeeded. In that window, and after the\nsource lost its output device, nothing owned the sink as far as the app\ncould tell: the OS media routers fell through to librespot, Space\nresumed the paused Spotify track, the tick polled `me/player`, a\nthrottled seek or volume change queued under the previous owner flushed\nagainst the new one, and a Spotify command held back by a rate-limit\nwindow replayed straight into the Spotify handlers, past the source\nrouters.\n\nA start now claims the sink before it pauses librespot. The claim is\nread by the ownership predicate every chain uses\n(`active_decoded_source()`), survives a failed start and a lost device,\nand ends when the source's queue runs out or when an explicit Spotify\nstart reaches `Network::start_playback`. The seek and volume flushes\nre-check the owner, the rate-limit replay carries the owner it was\nqueued under and goes back through the pump, and the timed token refresh\nstays quiet under a decoded owner and backs off after a failure.\n\nDeliberate behaviour changes:\n\n1. During a decoded start, and after a failed start or a lost output\ndevice, Space and the OS media keys do nothing to Spotify (Space says\n\"Nothing is playing\") until the source's queue runs out or a Spotify\ntrack or context is started explicitly. The device picker's switch to\nthe spotatui device is refused in that state too.\n2. The media Stop key pauses librespot instead of unloading the track,\non all three platforms. The Windows Stop arm now checks that a native\ntrack is loaded, like its siblings; the macOS Stop arm clears the play\nintent, like MPRIS.\n3. A throttled seek is dropped when the player it was queued for no\nlonger owns the sink. A volume change made under a decoded owner is\napplied to that source and",
           "author": "LargeModGames",
           "date": "2026-09-10T13:19:27Z",
-          "url": "https://github.com/nohint404/spotatui/commit/b1ecdee04a6ef4aa2de7d4ccdf815ebe965edcbb",
+          "url": "https://github.com/psymariux/spotatui/commit/b1ecdee04a6ef4aa2de7d4ccdf815ebe965edcbb",
           "branch": "main"
         },
         {
@@ -193,7 +222,7 @@
           "message": "fix(cd): list the .deb assets explicitly so the gui shim is not packaged (#521)\n\n# Summary\n\nThe v0.42.0 release run failed on both Linux builds at the `Package\nDebian (.deb)` step:\n\n```\nerror: Unable to read asset to add to archive: .../target/x86_64-unknown-linux-gnu/release/spotatui-gui\n  cause: No such file or directory (os error 2)\n```\n\ncargo-deb packages every `[[bin]]` by default, and the `spotatui-gui`\nshim from #462 only builds with the `gui` feature, so the release build\nnever produces it. `[package.metadata.deb]` now lists its assets\nexplicitly: the `spotatui` binary and the README. The `.deb` step has\nnot passed since #462; the two previous release runs failed earlier, at\nthe crates.io publish.\n\n# Testing\n\n- `cargo metadata --locked` passes (no lockfile change)\n- `cargo build --release --no-default-features --features\ntelemetry,tui`, then `cargo deb --no-build` with the new table: the\npackage holds `usr/bin/spotatui`, `usr/share/doc/spotatui/README` and\n`copyright`, with `Suggests: yt-dlp, ffmpeg` intact\n- Not verified locally: `dpkg-shlibdeps` (Arch has no dpkg), so the\nlocal package has an empty `Depends:`. The failed CI job shows it\nrunning on the Ubuntu runner, so the released package gets the real\ndependencies\n\n# Additional notes\n\nAfter merge the `v0.42.0` tag is moved to the merge commit and pushed\nagain. The failed run published nothing (no release object, no crates.io\nupload), so there is nothing to clean up.\n\nThe package's long description is the whole README because cargo-deb\ndefaults `extended-description` to it. Pre-existing, left alone here.\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n\n## Summary by CodeRabbit\n\n- **Bug Fixes**\n- Debian packages now install the `spotatui` executable correctly with\nappropriate permissions.\n- Package documentation now includes the README in the standard system\ndocumentation location.\n- Packaging is more consistent across standard and GUI build\nconfigurations.\n\n<!-- end of auto-ge",
           "author": "LargeModGames",
           "date": "2026-09-08T08:37:18Z",
-          "url": "https://github.com/nohint404/spotatui/commit/21e9a5456d526b93b02bfa2f57a3ddcc7c8f4d6a",
+          "url": "https://github.com/psymariux/spotatui/commit/21e9a5456d526b93b02bfa2f57a3ddcc7c8f4d6a",
           "branch": "main"
         },
         {
@@ -203,7 +232,7 @@
           "message": "chore(release): v0.42.0 (#520)\n\n# Release v0.42.0\n\nVersion bump and changelog for v0.42.0. No code changes.\n\nAlso adds `.github/PULL_REQUEST_TEMPLATE/release.md`, the template this\nPR uses,\nso future releases go through a PR instead of a push to `main`\n(`gh pr create --template release.md`; the root template stays the\ndefault).\n\n# Checklist\n\n- [x] `CHANGELOG.md`: `## [Unreleased]` renamed to `## [v0.42.0]\n2026-09-08`, every user-facing PR since v0.41.0 has an entry\n- [x] `Cargo.toml` version bumped and `Cargo.lock` regenerated (`cargo\nupdate -p spotatui --offline`)\n- [x] `cargo metadata --locked` passes (every CI leg runs with\n`--locked`)\n\n# After merge\n\n```bash\ngit checkout main && git pull\ngit tag v0.42.0\ngit push origin v0.42.0\n```\n\nThe tag push runs `cd.yml`. Check the release page once it finishes: the\ndownload links resolve and both `.deb` rows are present.\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n\n## Summary by CodeRabbit\n\n- **New Features**\n  - Added Qobuz support.\n  - Added fuzzy filtering in Settings.\n- Added Tokyo Night theme, adaptive cover-art themes, and cava\nvisualization.\n  - Improved source-aware playback and native queue playback.\n\n- **Bug Fixes**\n- Improved Spotify compatibility, authentication, rate-limit handling,\nand YouTube retries.\n  - Improved audio-device and CLI device recovery.\n- Fixed configuration persistence, plugin and agent routing, and AI DJ\nstartup behavior.\n\n- **Documentation**\n  - Published release notes for version 0.42.0.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
           "author": "LargeModGames",
           "date": "2026-09-08T07:28:44Z",
-          "url": "https://github.com/nohint404/spotatui/commit/17338e7c39c0a789875995321d7fecf98850dc8b",
+          "url": "https://github.com/psymariux/spotatui/commit/17338e7c39c0a789875995321d7fecf98850dc8b",
           "branch": "main"
         },
         {
@@ -213,7 +242,7 @@
           "message": "fix(network): use the Development Mode endpoints (#518)\n\n# Summary\n\nSince March 2026 Spotify runs Development Mode apps (every app you\ncreate yourself; the shared ncspot client id is exempt) against a\nsmaller API, and since #516 your own app is the primary client id, so\neveryone who set one up hit this. Two failures:\n\n- **Search**: the request `limit` was sized by the terminal height, up\nto 50, and the new cap is 10, so every search ended in `400 Bad Request\n\"Invalid limit\"`. Search requests are now capped at 10 results per\ncategory (the library pages keep their 50), and `spotatui search\n--limit` and the DJ `search_tracks` tool accept 1 to 10.\n- **Removed endpoints**: seven call sites still used endpoints Spotify\nremoved for these apps and got `403 Forbidden`: the artist follow check\nthat runs after every search (it opened the error page over the\nresults), follow and unfollow artist, create playlist, remove track from\nplaylist, and the DJ's Liked Songs check, playlist crawl and\nqueue-by-URI lookup. Each now uses its replacement (`me/library`,\n`me/playlists`, `playlists/{id}/items`, one `tracks/{id}` per track). A\nfailed follow check is logged instead of taking over the screen.\n\nReported on Discord by two users with their own client id.\n\n# Testing\n\n- `cargo fmt --all`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`: clean\n- `cargo test --no-default-features --features telemetry,tui`: 970\npassed, gates ratchet ok\n- `cargo clippy` for the `telemetry`, `telemetry,tui,mcp-server` and\n`telemetry,tui,ai-dj` legs: clean\n- `cargo test --no-default-features --features telemetry,tui,mcp-server\ninfra::dj`: 51 passed\n- Live run with my own client id: search, follow and unfollow an artist,\ncreate a playlist, and remove a track from a playlist all work.\n\n# Additional notes\n\n- The artist screen (top tracks, related artists), Discover and\nRecommendations still call endpoints with no Development Mode\nreplacement. Follow-up in #517.\n- `positions` stays i",
           "author": "LargeModGames",
           "date": "2026-09-07T19:46:43Z",
-          "url": "https://github.com/nohint404/spotatui/commit/c165db23425772a5b88489fc3ee86a964e068217",
+          "url": "https://github.com/psymariux/spotatui/commit/c165db23425772a5b88489fc3ee86a964e068217",
           "branch": "main"
         },
         {
@@ -223,7 +252,7 @@
           "message": "fix(network): gate Spotify transport on the owner (#515)\n\n# Summary\n\nThe Spotify transport methods on `Network` chose the native player from\ndevice identity alone. A decoded source (Local Files, Subsonic, Qobuz,\nInternet Radio, YouTube) only pauses librespot, so a transport call that\nskipped the app's own routing (the Listening Party relay today, any new\ncaller tomorrow) transferred and activated the Connect device, loaded a\ntrack into librespot, or wrote to `me/player` while the decoded track\nwas still audible.\n\nEvery transport entry point now refuses while a decoded source or a\ndecoded queue item owns the sink; a queued Spotify track keeps the\nnative player. The device transfer refuses only its native arm, with a\nstatus message, so a transfer to an external device still works. The\nListening Party relay checks the owner itself, publishes the host's\ntrack from the playback snapshot (the audible track, not the suspended\ncontext), and dispatches its transport as events, so it passes the same\nclaim, source, auth and rate-limit gates as a keypress instead of an\ninline await on the serial pump.\n\nDeliberate behaviour changes:\n\n1. A Spotify transport call that reaches `Network` while a decoded\nsource owns playback is refused silently (a debug log). Switching\nSpotify to the spotatui device from the picker says \"Another source owns\nplayback\"; a switch to an external device still works.\n2. A party guest ignores the host's state, and a party host ignores a\nguest's command, while a decoded source or the native queue slot owns\nplayback.\n3. A host publishes nothing while a decoded source or the queue slot\nowns playback, and only a Spotify URI; a track without an id is no\nlonger sent as an empty URI.\n4. A guest ignores a host state whose URI it cannot play instead of\npausing or resuming its own music to match.\n5. The host's broadcast after a guest command is queued behind the\ncommand on the pump. Next and Previous keep the plain-event semantics\nthe relay had.\n\n# Testing\n\n- `cargo ",
           "author": "LargeModGames",
           "date": "2026-09-06T17:44:59Z",
-          "url": "https://github.com/nohint404/spotatui/commit/4348a70f33f117f07f23d40fd428f92f0f480b34",
+          "url": "https://github.com/psymariux/spotatui/commit/4348a70f33f117f07f23d40fd428f92f0f480b34",
           "branch": "main"
         },
         {
@@ -233,7 +262,7 @@
           "message": "fix(auth): put your own Spotify app first (#516)\n\n# Summary\n\nSpotify rate limits are per app, and the quick setup's shared ncspot\nclient id is counted against every ncspot and spotatui user at once. My\nlogs since 2026-08-28 show hundreds of 429s per session, a 429 on the\nfirst request of a process, and a 5 s playback poll throttled for hours\nwhile spotatui made about 12 requests a minute. Playlists stopped\nloading. The wizard's option 2 wrote the shared id as the primary\n`client_id` and the user's own app as `fallback_client_id`, and the\nfallback was only used when the shared id failed to authenticate, never\non a rate limit. A hand-edited primary got no token either: a normal\nlaunch never opens a browser, and the shared id's cached token made the\nfallback win.\n\nThis PR puts the user's own app first:\n\n1. Wizard option 2 writes the own app as `client_id` and the shared id\nas `fallback_client_id`, asks for the port before it prints the Redirect\nURI to register, and the option texts say which one shares its limit.\n2. A `client.yml` from an older version, with the shared id first and a\nvalid own app as the fallback, is read the other way round at load.\n3. When a session runs on the shared id, the startup notice, the 429\nstatus message and the log say so and name `spotatui --reconfigure-auth`\n(option 2) as the way out.\n4. The pre-TUI wait for the browser callback gives up after three\nminutes with a hint about the Redirect URI, as the in-app login already\ndid.\n5. A 429 on the plan check at startup no longer disables native\nstreaming for the session: the deferred check waits out the window (up\nto a minute, three attempts) and asks again.\n6. `ClientIdNotice::SharedWhilePersonalConfigured` is gone: with the own\napp first it cannot occur.\n7. Docs: `docs/installation.md` \"Connecting to Spotify\", a README\nparagraph, the CHANGELOG.\n\nAn existing option-2 user still runs on the shared id at the first\nlaunch after the upgrade, because a normal launch never opens a browser;\nthe statu",
           "author": "LargeModGames",
           "date": "2026-09-06T16:53:04Z",
-          "url": "https://github.com/nohint404/spotatui/commit/d1d92869313957b04fe8971da17cefa97331205a",
+          "url": "https://github.com/psymariux/spotatui/commit/d1d92869313957b04fe8971da17cefa97331205a",
           "branch": "main"
         },
         {
@@ -243,7 +272,7 @@
           "message": "fix(config): keep a symlinked config.yml, survive read-only (#514)\n\n# Summary\n\nFixes #512. A `config.yml` that is a symlink into a read-only store\n(home-manager, stow, chezmoi) no longer crashes boot or loses its link.\n\n- `write_private_file_atomic` follows the link chain before the temp\nwrite and the rename, so the swap happens at the link's target. A\nsymlinked `config.yml` (also `state.yml` and the Qobuz credentials file)\nkeeps its link. A dangling link keeps its link too, and the write\ncreates the target. A link into a read-only store makes the write fail\nwith an error, and the link stays.\n- The global song counter prompt logs a warning when the answer cannot\nbe saved and tells the user which key to set by hand. It no longer\naborts boot. The write now goes through `write_private_file_atomic` like\nevery other config write.\n- The first-run source picker and the Subsonic setup warn instead of\nabort when `config.yml` cannot be saved.\n- The settings editor still shows the error frame on a read-only config.\nThe change applies in memory for the session. That matches the repo rule\nfor an operation the user asked for.\n\n# Testing\n\n- `cargo fmt --all -- --check`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`: clean\n- `cargo test --no-default-features --features telemetry,tui`: 957\npassed\n- `cargo clippy --no-default-features --features telemetry -- -D\nwarnings`: clean\n- New tests: three symlink tests in `core/auth.rs` (a linked target, a\ndangling link, a read-only target) and a failed opt-in write in\n`runtime/bootstrap.rs`. The symlink tests ran for real on Windows with\nDeveloper Mode and return early on a machine that cannot create\nsymlinks. The `0o500` Unix arm runs on the Linux CI legs.\n- `tools/gates.count`: `test_attribute_total` 1826 to 1830 for the four\nnew tests.\n\n# Additional notes\n\nNot verified on a real home-manager setup. I will ask the reporter to\ntest a build from this branch.\n\n---\n<sub>💬 Questions or want to chat with other co",
           "author": "LargeModGames",
           "date": "2026-09-05T22:56:27Z",
-          "url": "https://github.com/nohint404/spotatui/commit/6b9c747a00ed38abe9ecc63755c47e488d7d7067",
+          "url": "https://github.com/psymariux/spotatui/commit/6b9c747a00ed38abe9ecc63755c47e488d7d7067",
           "branch": "main"
         },
         {
@@ -253,7 +282,7 @@
           "message": "fix(app): resolve the playing item through the owner (#511)\n\n# Summary\n\nThe four actions on \"the item playing now\" (jump to album `a`, jump to\nartist `A`, jump to context `o`, add the playing track to a playlist\n`w`/`W`) read the cached Spotify playback context directly. While a\ndecoded source (Local Files, Subsonic, Qobuz, Internet Radio, YouTube)\nor the native queue slot owns the sink, that context names the\n*suspended* Spotify track, so the keys fetched or staged the wrong item:\nwith a Qobuz track audible, `a` opened the suspended track's album with\na real `albums/{id}/tracks` request, and `W` offered to add a song the\nuser was not hearing to a Spotify playlist.\n\nThey now resolve through one `App::playing_item()` in\n`core/app/playback_routing.rs`, which folds `playback_owner()` and the\nqueue slot into one answer, the way Like already did. Like goes through\nthe same resolver, so its own predicate and\n`queue_now_spotify_track_uri` are gone. A queued Spotify track resolves\nthrough the slot: its URI for the picker, its album id (or the album\nlookup from the track id when the slot track carries none), its first\nartist. A decoded owner answers with a status message.\n\nA new ratchet counter, `direct_playback_context_reads`, counts every\nread of `App::current_playback_context` outside the ownership resolver\nand the snapshot builder, pins at 93 (97 before this PR), and may only\nfall.\n\nDeliberate behaviour changes:\n\n1. With a decoded source or a decoded queue item playing, the five keys\nshow a status message instead of acting on the suspended Spotify track.\n2. A queued Spotify track now jumps to its own album and artist and\nstages itself in the picker. `o` on a queued track says the slot has no\nplay context.\n3. The three jump keys say \"Nothing is playing\" where they were silent\n(no session, no item, or no context). A context with no item (an ad\nplays) still opens.\n4. Jump to artist on a Spotify track with no artist id says so instead\nof doing nothing.\n\nThe copy-URL keys kee",
           "author": "LargeModGames",
           "date": "2026-09-05T13:38:35Z",
-          "url": "https://github.com/nohint404/spotatui/commit/2fd498c75a26bbb8e99119cd1bf68549fb026b87",
+          "url": "https://github.com/psymariux/spotatui/commit/2fd498c75a26bbb8e99119cd1bf68549fb026b87",
           "branch": "main"
         },
         {
@@ -263,7 +292,7 @@
           "message": "fix(network): keep a 429 backoff off the serial pump (#510)\n\n# Summary\n\nA Spotify 429 no longer sleeps on the serial IoEvent pump.\n\nWith the shared ncspot client ID saturated, `GET /v1/me/player` answers\n429 with a `Retry-After` of about 22 s. The retry loop in `requests.rs`\nslept that window on the pump, up to four attempts per poll, so every\nevent behind it waited: a Qobuz track change took up to 30 s after the\nsink drained, a Qobuz skip took 20 s after the key press, and every\nSpotify browse waited in the same line. The poll also kept running while\nQobuz owned the sink.\n\nNow:\n\n- A 429 stores its `Retry-After` window on the session gate and fails at\nonce. Inside the window a call fails at once with no request, and the\ntext names the wait.\n- `Network` holds a Spotify-bound event back, in arrival order, while a\nwindow is open. The pump flushes the list when the window ends, so\nnothing is lost and the pump never sleeps. The first hit of a window is\na status message under the pump. The CLI has no pump to block, waits\ninline, and keeps its `api_error` exit signal.\n- The Spotify playback poll is skipped while a decoded source owns the\nsink.\n\nSource events never reach this path (the routers run first), so a Qobuz\nskip is now immediate regardless of Spotify's state.\n\n# Testing\n\n- `cargo fmt --all`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`\n- `cargo test --no-default-features --features telemetry,tui`: 947\npassed\n- `cargo clippy --features all-sources -- -D warnings`\n- `cargo clippy --no-default-features --features telemetry -- -D\nwarnings`\n- Smoke test on Windows with Qobuz playing against the saturated shared\nID: track changes and skips are immediate again, startup shows \"Spotify\nrate limit: waiting Ns\" instead of the error page, and the sidebar fills\nwhen the wait ends.\n\nFour new tests: the window fails at once and blocks the next call\nlocally, held-back events keep their order, a rate-limit error under the\npump is a status message, a",
           "author": "LargeModGames",
           "date": "2026-09-04T19:14:06Z",
-          "url": "https://github.com/nohint404/spotatui/commit/4c01587d3ab174c4896f7e0fa9ec0594bedab0bb",
+          "url": "https://github.com/psymariux/spotatui/commit/4c01587d3ab174c4896f7e0fa9ec0594bedab0bb",
           "branch": "main"
         },
         {
@@ -273,7 +302,7 @@
           "message": "refactor(app): privatize App fields and cursors (#509)\n\n# Summary\n\nThe shared `App` surface starts to close. A field with no writer outside\n`core/app/` is now private, the table cursors are presentation state in\n`App.view`, the prompt gestures are `Action`s, and the pane geometry and\nthe status bar are reached only through `App` methods.\n\n- 29 fields go private: 21 with no reference outside `core/app/`, the\nstatus-message trio, `api_error`, `pending_keybinding_persist`,\n`settings_saved_items`, `recap_prompt` and\n`pending_track_table_selection`. Outside readers use intent-named\ngetters (`status_message()`, `status_message_is_error()`, `api_error()`,\n`recap_prompt()`, `pending_keybinding_persist_key()`,\n`has_unsaved_settings_changes()`). The dead `small_search_limit` is\ngone.\n- The track table, search, Recently Played and sidebar cursors move into\n`App.view`. `SpotifyResultAndSelectedIndex` is gone and `SearchResult`\nis five plain pages. A producer that replaces a list resets its cursor\nthrough `set_track_table`, `clamp_track_table_cursor` or\n`clamp_search_cursors`; the source dispatchers and the search handler\nuse them, so `view_writes_outside_tui` holds at 12.\n- Six new `Action` variants replace the nine handler writes on domain\nstate: `OpenRecap`, `DismissRecapPrompt`, `DisableRecapPrompt`,\n`AnswerCommunityPinPrompt { keep }`, `DismissDjSetup` and\n`CommitDjSetup`, each with its `default_binding` arm and sample. The\nDJ-setup and recap logic moved from the handlers into `core/app/dj.rs`\nand the new `core/app/recap.rs`.\n- The new `core/app/layout.rs` holds the three pane setters and\n`reset_layout`; the resize handler calls them.\n- The ten producer sites that wrote the status fields directly now call\n`set_status_message`. `show_status_message` is a thin wrapper over it\nand the tick expires through `clear_status_message`.\n- `pub_fields_on_app` joins the ratchet at 139, fall-only, target 1\n(`App.view` stays public for the frontend).\n- The `core/app/` rules in the three i",
           "author": "LargeModGames",
           "date": "2026-09-04T17:19:39Z",
-          "url": "https://github.com/nohint404/spotatui/commit/0ed744b3216e19e2e3309aae98900ac319f38866",
+          "url": "https://github.com/psymariux/spotatui/commit/0ed744b3216e19e2e3309aae98900ac319f38866",
           "branch": "main"
         },
         {
@@ -283,7 +312,7 @@
           "message": "refactor(tui): map every Action to its key surface (#508)\n\n# Summary\n\nEvery shared `Action` variant now names the terminal surface that\nproduces it, and the action tree refuses a catch-all match arm at\ncompile time.\n\n- `src/tui/keymap.rs` gains `TuiSurface` (a rebindable key, a hard-coded\nkey with the screen it works on, or a mouse gesture), `Exposure<S>`\n(`Bound` or `Unbound(\"reason\")`) and the exhaustive\n`default_binding(&Action)`: one arm per variant, 95 in total. `Navigate`\nis spelled out per `NavTarget`, `OpenLibrary` per `LibraryTarget`,\n`Sort` and `ToggleSortOrder` per `SortContext`, `CopyUrl` per\n`CopyTarget`. `Bound` means reachable in this build: the five AI DJ arms\nand the AI DJ and Local Files library rows are `Bound` only with their\nfeature, through the usual body-level `#[cfg]`, never an arm attribute\n(an arm attribute would switch the lint off for the whole match).\n- One handler change, 1:1: the `open_settings` key now applies\n`Action::Navigate(NavTarget::Settings)` instead of calling\n`open_settings_screen()` directly (the Action arm is that same call).\nBefore this the only producer of that action was the mouse click on the\nSettings box, and the registry would have had to call the screen\nmouse-only. `action_refs_in_tui_handlers` rises by one.\n- `#![deny(clippy::wildcard_enum_match_arm,\nclippy::match_wildcard_for_single_variants)]` at the top of\n`src/core/action/mod.rs` (so it covers `apply.rs` and `tests.rs`) and of\n`keymap.rs`. The second lint matters: clippy routes a catch-all that\nhides exactly one variant to that pedantic lint, which is the \"one new\nvariant, one lazy `_ =>`\" case this exists to stop. The 55 `_other =>`\narms in the action tests sit on `Result` scrutinees, which the lint\nexempts.\n- A meta-test in `keymap.rs` reads the variant names out of the enum's\nown source, checks that `sample_actions()` covers each one exactly once,\npins the 18 `Unbound` names (plus the five DJ names on builds without\n`ai-dj`), and scans the production half of ",
           "author": "LargeModGames",
           "date": "2026-09-02T21:37:50Z",
-          "url": "https://github.com/nohint404/spotatui/commit/ff585ca2719b7b1f064d71199bd33e618695a91b",
+          "url": "https://github.com/psymariux/spotatui/commit/ff585ca2719b7b1f064d71199bd33e618695a91b",
           "branch": "main"
         },
         {
@@ -293,7 +322,7 @@
           "message": "fix(auth): survive a startup 429 on /me and bind the OAuth listener before the browser opens (#506)\n\n# Summary\n\nTwo startup/login fixes.\n\n- Fixes #504. With a cached login, startup verified the token with\n`spotify.me()` straight through rspotify: no pacing, no `Retry-After`\nretry, and every error that was not a 401 ended the process with `Error:\nhttp error: status code 429 Too Many Requests` before the UI existed.\nRelaunching only added more unpaced hits on a rate limit shared by\neveryone on the same client ID. The check now goes through the shared\npaced request path (`spotify_get_typed_before_app`: four attempts\nhonoring `Retry-After`, the usual 401 forced-refresh recovery). If it\nstill fails with anything other than a rejected token, boot logs a\nwarning and keeps the cached token instead of quitting; the\nnative-streaming account probe already re-asks `/me` with its own\nretries when the profile is missing.\n- Both Spotify login flows opened the browser before binding the OAuth\ncallback listener on `127.0.0.1:8989`, and `open::that` waits for the\nlauncher to exit. On Hyprland (and any session xdg-open does not\nrecognise) xdg-open runs the browser in the foreground, so with Firefox\nnot already running the call did not return until the browser was\nclosed: the listener never existed and the redirect got \"Unable to\nconnect\". In the TUI the pump was stuck for the same time. The listener\nis now bound before the browser opens, and every browser launch (Spotify\nlogin, Qobuz login, the recap page) uses `open::that_detached`.\n\n`tools/gates.count`: `test_attribute_total` 1800 -> 1802 for the two new\nclassifier tests.\n\n# Testing\n\n- `cargo fmt --all -- --check`\n- `cargo test --no-default-features --features telemetry,tui`: 937\npassed, 0 failed\n- `cargo clippy -- -D warnings` on the slim, headless (`telemetry`),\nheadless-streaming (`telemetry,streaming`), and default feature sets,\nplus the all-sources set with `audio-viz-cpal` in place of `audio-viz`\n(PipeWire does not build on th",
           "author": "LargeModGames",
           "date": "2026-09-02T18:32:44Z",
-          "url": "https://github.com/nohint404/spotatui/commit/bcbcf39e9358d76972d3dced40554908ab317507",
+          "url": "https://github.com/psymariux/spotatui/commit/bcbcf39e9358d76972d3dced40554908ab317507",
           "branch": "main"
         },
         {
@@ -303,7 +332,7 @@
           "message": "feat(tui): offer what the source and session can do (#505)\n\n# Summary\n\nThe sidebar, the help menu and the Settings screen now offer only what\nthe active source and the Spotify session can do, from one table of\nrequirements. Before this, the Library panel was hidden under every\nsource but Spotify, which also hid Friends and Stats, and under the\nSpotify scope without a session it kept offering six rows that each\nended in \"Spotify not connected\".\n\n- `core/requirement.rs` adds `Requirement` (`None`, `SpotifySession`,\n`Capability`, `Source`, `AnyOf`) and the pure `availability(requirement,\nsource, spotify_connected)`. `App::availability` answers for the active\nscope and the session. `Availability::hint()` gives the suffix a visible\nrow keeps: `(needs Spotify)`, `(not for Local Files)`, `(Internet Radio\nonly)`.\n- Sidebar: `library_row_requirements()` replaces `library_options()`,\nand `App::library_rows()` is the filtered list. The panel is drawn under\nevery source: Friends and Stats always, Local Files and AI DJ when built\nin, the six Spotify rows only with a Spotify session. The selected row\nis stored as a `LibraryTarget`, so a hidden row falls back to the top\nrow and comes back when its source returns. The mouse map matches the\ndrawn rows, and the arrow keys reach the panel from the Playlists block\nunder every source.\n- Help menu: the rows moved to `help_entries()` in `tui/keymap.rs`, each\nwith a `Requirement`. A rebindable key that needs more stays listed with\nthe suffix. A fixed key of a screen the source cannot reach is hidden.\nThe help model is rebuilt when the source or the session changes, and it\nowns the row count the pager reads.\n- Settings: `setting_requirement(id)` gates the rows. The Spotify-only\nbehavior rows are hidden without a session, live, so a login while\nSettings is open shows them. The Spotify-only key rows carry the suffix.\nWithout a session the startup route cycles over `home` and `stats`,\nunless the config already names a Spotify screen. The `d` r",
           "author": "LargeModGames",
           "date": "2026-09-02T16:44:15Z",
-          "url": "https://github.com/nohint404/spotatui/commit/a0dc5f84671d074da73597f85f1f16410f3f3b1d",
+          "url": "https://github.com/psymariux/spotatui/commit/a0dc5f84671d074da73597f85f1f16410f3f3b1d",
           "branch": "main"
         },
         {
@@ -313,7 +342,7 @@
           "message": "fix(queue): refuse a plugin's repeat while the queue slot owns playback (#503)\n\n# Summary\n\nCloses the second half of #376. After #390 closed the internet-radio\npath, a plugin's `set_repeat` still reached the user's real Spotify\ndevice whenever the native queue slot owned playback:\n`Action::SetRepeat` dispatches a raw `IoEvent::Repeat`, no router\nconsumed it, and `Network::repeat` changed repeat on a track the user\nwas not listening to, with nothing on screen to show for it. This is\nreachable in a plain `default` build.\n\nThe fix is a `Repeat` arm in `route_queue_event`, gated on\n`queue_owns_playback()`. That router is compiled unconditionally and\nruns first in the pump, so it covers the Spotify and decoded queue slots\nin one place without touching the per-source dispatchers. It sets the\nsame \"Repeat does not apply to this source\" status the keyboard path\nuses, so the plugin caller gets the same answer as the key.\n\n`set_shuffle` does not have the same hole: `Action::SetShuffle` goes\nthrough `App::shuffle`, which already carries the queue-slot guard.\n\n# Testing\n\n- `cargo fmt --all -- --check`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`: clean\n- `cargo test --no-default-features --features telemetry,tui`: 906\npassed\n- `cargo clippy -- -D warnings`: clean\n- `cargo test`: 1208 passed, including the new\n`repeat_is_refused_while_the_queue_slot_owns_playback` (gated on\n`streaming`, since the slim build's `QueueNowPlaying` has no variants)\n- `tools/check_gates_ratchet.sh origin/main`: ok\n\nNot verified: a live run with a Lua plugin calling `set_repeat` over a\nqueued track.\n\n# Additional notes\n\n`test_attribute_total` moves 1770 to 1771 in `tools/gates.count` for the\nnew test.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui Discord](https://spotatui.com/discord).</sub>\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n\n## Summary by CodeRabbit\n\n* **New Features**\n* Queue playback now",
           "author": "LargeModGames",
           "date": "2026-09-02T10:26:33Z",
-          "url": "https://github.com/nohint404/spotatui/commit/8444374ea924ac20f3572b787e3c7318261fe089",
+          "url": "https://github.com/psymariux/spotatui/commit/8444374ea924ac20f3572b787e3c7318261fe089",
           "branch": "main"
         },
         {
@@ -323,7 +352,7 @@
           "message": "fix(nix): bump nixpkgs past the crates.io 403 on crate downloads (#502)\n\n# Summary\n\nSince 2026-08-27 every crate download in the Nix flake build fails with\nHTTP 403, so `nix build`, `nix run github:LargeModGames/spotatui`, and\nthe `Flake` check are all red, on released tags too. crates.io now\nrefuses the deprecated `api/v1/crates/<name>/<version>/download`\nendpoint to the curl user agent that nixpkgs' `fetchurl` sends (cargo\nand Nix's own fetcher still get 200), and the nixpkgs pinned in\n`flake.lock` (2026-03-03) fetched every crate through it. Current\n`nixos-unstable` has `importCargoLock` fetching from `static.crates.io`\ninstead.\n\n- `flake.lock`: `nix flake update nixpkgs`, 8c809a14 (2026-03-03) to\n34ab9907 (2026-08-31). The Nix toolchain goes from Rust 1.93 to 1.97\nwith it.\n- `flake.nix`: nixpkgs 26.11 dropped x86_64-darwin and throws at\nevaluation for it, which fails `nix flake check --all-systems`. The\nflake now lists `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`\nexplicitly instead of `eachDefaultSystem`. Intel Mac users keep the\nrelease tarball, which `cd.yml` still builds. I considered pinning\n`nixos-26.05` instead (it has the static.crates.io fix backported and\nstill supports x86_64-darwin), but it goes EOL at the end of 2026 and\nthe same decision would come back then.\n- `CHANGELOG.md`: a Fixed entry, since released tags are affected too.\n- `README.md`: the Nix section now lists the systems the flake provides\nand points Intel Mac users at Homebrew, the installer, or the release\ntarball.\n\nFixes #493.\n\n# Testing\n\nnix is not installed on this machine, so I ran the three steps of\n`nix.yml` through nix-portable (nix 2.20.6) against the final tree:\n\n- `nix flake check --all-systems --no-build`: exit 0, all three systems\nevaluate (`packages`, `apps`, `devShells`).\n- `nix build --no-link .#default.cargoDeps`: exit 0, 163 crates fetched\nfrom `static.crates.io`, zero 403s, vendor dir built.\n- `nix develop --command cargo --version`: `cargo 1.97.0 (c980f4866\n20",
           "author": "LargeModGames",
           "date": "2026-09-01T22:25:47Z",
-          "url": "https://github.com/nohint404/spotatui/commit/08bf0851d287ec01a3a3bd6f988c971927591785",
+          "url": "https://github.com/psymariux/spotatui/commit/08bf0851d287ec01a3a3bd6f988c971927591785",
           "branch": "main"
         },
         {
@@ -333,7 +362,7 @@
           "message": "fix(audio): stop two pump freezes, and enable the alternative sources on macOS (#498)\n\nTwo freezes and a platform. The freezes are the urgent half — they\naffect the released Linux and Windows binaries today; macOS enablement\nis what uncovered them.\n\n**Fixes #496** (losing the audio output device) — **Fixes #497** (an\nundecodable radio station)\n\n### The freezes\n\nBoth are the same class: an unbounded wait on the serial IoEvent pump.\nWhen one of those never returns it takes every unrelated request queued\nbehind it, so the app looks frozen — search dead, transport dead —\nrather than merely silent.\n\n- **#496**: rodio's `clear()` and `try_seek()` wait on the audio\ncallback with no timeout. Lose the output device and that callback never\nruns again. `LocalPlayer` now refuses those calls once the device is\ngone, and the driver's tick rebuilds the output on the new default\ndevice and restages the track there, paused where it stopped — what\nmacOS itself does when AirPods come out.\nDetection has two shapes and only one is an error anybody reports: cpal\nsees a device *removed*, but it cannot see the OS moving its **default\noutput** elsewhere, which is the common case and leaves the stream\nfeeding a device nobody hears. So the sink also remembers what it opened\nand compares against the current default.\n- **#497**: rodio's symphonia probes the format by scanning for a marker\nit recognises, and a live stream never ends. `stream.rs` already caps\nconnect and header waits for exactly this reason; the probe was the\nthird step of that sequence and was unbounded. Now capped — and giving\nup cancels the **download**, not the reader, because the probe parks\n*inside* `read` where a flag would never be seen.\n\n### macOS\n\n`LocalPlayer::open_sink()` bailed on macOS. That bail was never a fix\nfor an observed crash in this engine: it has been there since the commit\nthat introduced the player, inherited from #9/#20, which were\nlibrespot-playback's own `rodio-backend` on an older rodio. The lockfile",
           "author": "alessandro-zanni",
           "date": "2026-09-01T21:29:50Z",
-          "url": "https://github.com/nohint404/spotatui/commit/03f5824f58545b39043a3ed3f22abd44938618d4",
+          "url": "https://github.com/psymariux/spotatui/commit/03f5824f58545b39043a3ed3f22abd44938618d4",
           "branch": "main"
         },
         {
@@ -343,7 +372,7 @@
           "message": "fix(local): scan nested folders so a two-level music library is browsable (#499)\n\n## The bug\n\nWith `behavior.local_music_path: ~/Music` and a library organised as\n\n```\n~/Music/Jamendo/Playlist - Fresh & New/001-….mp3   (73 files)\n```\n\nthe local-files library listed `Jamendo` with a **0** track count, and\nselecting it showed an **empty track table**.\n\n`LocalSource::playlists` walked only the immediate subdirectories of the\nroot and counted only the audio sitting *directly* inside them\n(`count_audio_files`, non-recursive). `Jamendo` holds no mp3s of its\nown, so it got `track_count: 0` — and `tracks()`, reading that same flat\ndirectory, found nothing. Any `Artist/Album/…` layout hit this too.\n\n## The fix\n\n`playlists()` now walks the tree and returns one playlist per directory\nthat **actually holds audio**, named by its path relative to the music\nroot:\n\n```\nJamendo/Playlist - Fresh & New   73\n```\n\nDirectories that only contain other directories are no longer listed —\nthere is nothing to play in them, and listing them was the whole\nconfusion.\n\n`tracks()`, the URIs, and playback are **unchanged**: the playlist URI\nalready pointed at whatever folder the entry named, it now names the\nfolder that holds the files.\n\nGuards in the walk:\n\n- `DirEntry::file_type` instead of `Path::is_dir` — it does not\ndereference, so a **symlinked directory is not descended into** and a\nlink loop cannot hang the scan.\n- A subdirectory that cannot be read (permissions) is **skipped**, not\nfatal — one denied folder must not hide the rest of the library. An\nunreadable *root* stays fatal, as before.\n- Hidden entries (`.Trash`, `.DS_Store`) skipped; `MAX_SCAN_DEPTH = 8`\ncaps the descent.\n\nThe synthetic `(root)` entry keeps its **non-recursive** count on\npurpose, so it stays consistent with what `tracks()` returns for that\nsame URI.\n\n## Tests\n\nThree added (`playlists_finds_nested_folders_with_audio`,\n`playlists_omits_folders_with_no_direct_audio`,\n`playlists_stops_at_max_scan_depth`); `tools/gates.cou",
           "author": "alessandro-zanni",
           "date": "2026-09-01T20:08:07Z",
-          "url": "https://github.com/nohint404/spotatui/commit/427e04d1bce1f75103cc379ca5db16793327fdc6",
+          "url": "https://github.com/psymariux/spotatui/commit/427e04d1bce1f75103cc379ca5db16793327fdc6",
           "branch": "main"
         },
         {
@@ -353,7 +382,7 @@
           "message": "refactor(core): rename AddFriendByUserId to AddFriendById (#500)\n\n# Summary\n\nRenames the `AddFriendByUserId` variant of `IoEvent` and `Action` to\n`AddFriendById`. This closes the nine open `rust/cleartext-logging`\nCodeQL alerts (29 to 37).\n\nAll nine share one root cause. CodeQL marks a call as sensitive when the\nvariant name matches its `user.?(name|id)` heuristic. It then treats the\nwhole `IoEvent` / `Action` value as sensitive and follows it through\n`App::apply` and the IoEvent pump into unrelated sinks: a volume integer\nin `core/app/volume.rs`, two `Vec` operations in `core/app/queue.rs`,\nand three test `assert!` messages in `tui/handlers/mouse.rs`. The\npayload is a public spotatui.com user id, not a credential. The doc\ncomments keep the meaning.\n\nThe tenth alert (38, `rust/cleartext-transmission` on the Subsonic\nusername in the request URL) is dismissed as won't fix: the Subsonic API\ncarries `u`, `t` and `s` as query parameters by design, the password\nnever travels, and transport encryption is the server URL scheme.\n\n# Testing\n\n- `cargo fmt --all`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`: clean\n- `cargo test --no-default-features --features telemetry,tui`: 903\npassed, 0 failed\n- `cargo clippy --no-default-features --features telemetry -- -D\nwarnings`: clean\n- `grep -rn AddFriendByUserId src`: no matches\n\n# Additional notes\n\nThe alerts close only when CodeQL scans the merged commit. If any\nsurvive, the next suspects are the function names\n`handle_add_friend_by_user_id` and `post_add_friend_by_user_id` in\n`infra/network/friends.rs`, which match the same regex but reach no sink\ntoday.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui Discord](https://spotatui.com/discord).</sub>\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n\n## Summary by CodeRabbit\n\n* **Refactor**\n* Renamed the add-friend action to use clearer “Add Friend by ID”\nterminology.\n* Updated the add-frie",
           "author": "LargeModGames",
           "date": "2026-08-29T11:46:43Z",
-          "url": "https://github.com/nohint404/spotatui/commit/eb7ec74707d5aca499416b951acd74d72e66a7a0",
+          "url": "https://github.com/psymariux/spotatui/commit/eb7ec74707d5aca499416b951acd74d72e66a7a0",
           "branch": "main"
         },
         {
@@ -363,7 +392,7 @@
           "message": "fix(core): run without a Spotify session (#495)\n\n# Summary\n\nA launch with a non-Spotify source still forced Spotify on you. Boot\ndecided Spotify was mandatory from the browse scope, so it opened a\nbrowser before the first frame. Boot now derives the mode from a cached\ntoken instead:\n\n- Interactive only right after the client wizard or\n`--reconfigure-auth`. You just asked for Spotify.\n- A cached token, or a clear exit with a message, for a CLI subcommand.\n- A cached token, or no session at all, for a UI launch. The in-app\nlogin is still there.\n\nThe `Spotify` browse scope reaches `state.yml` only after the login\nsucceeds, so a cancelled login does not force a browser at the next\nboot.\n\nThe transport chains (play/pause, next, previous, seek, shuffle, repeat,\nvolume) all ended on a bare Spotify dispatch. They now end on\n`dispatch_spotify_fallback`, which answers \"Nothing is playing\" when\nthere is neither a local player nor a session. `App::playback_owner()`\nfolds the three ownership predicates into one `PlaybackOwner` value.\n\nThe rest are session-free failures found in the same pass:\n\n- A `StartPlayback` that no source and no session could take still\nreached the pump's routers, whose foreign-start arms tear the audible\nplayer down. It started nothing and stopped what was playing. A claim\ngate now drops it first and says either which feature this build lacks\nor that Spotify is not connected. An empty URI list no longer leaves the\nsink.\n- A party message with no Spotify client panicked the pump for the rest\nof the session, because every relay handler goes through\n`Network::spotify()`, which is an `expect`. The drain now returns early,\nand hosting or joining a party needs a session too.\n- SMTC registered only when native streaming was attempted, so on\nWindows a decoded source had no media keys and no position. It now\nregisters unconditionally, like MPRIS, and the position poll reads the\nplayback snapshot instead of the Spotify context.\n- Radio has no position and is not se",
           "author": "LargeModGames",
           "date": "2026-08-27T14:59:41Z",
-          "url": "https://github.com/nohint404/spotatui/commit/258380c4bcaf850c59890ceed29249cabb181d1b",
+          "url": "https://github.com/psymariux/spotatui/commit/258380c4bcaf850c59890ceed29249cabb181d1b",
           "branch": "main"
         },
         {
@@ -373,7 +402,7 @@
           "message": "feat(sources): add Qobuz (#489)\n\n# Summary\n\nAdds Qobuz as a source, behind the `qobuz` feature (part of\n`all-sources`):\n\n- Browser login (OAuth loopback on `localhost:<port>`), with the token\nsaved in a private `qobuz_credentials.yml`. The three web-player\nconstants are scraped at runtime, cached in `state.yml`, and overridable\nwith the `SPOTATUI_QOBUZ_*` env vars. Nothing secret is embedded.\n- Sidebar rows for favorite tracks, playlists, and favorite albums;\ncatalog search; the shared track table, the native queue, session\nrestore, MPRIS/SMTC/Discord metadata, and cover art.\n- Playback through the web player's encrypted CMAF stream: each track is\ndecrypted and rebuilt as a FLAC tempfile while it plays (a\n`stream-download` source, so a seek past the downloaded part restarts\nthere). The playbar shows the delivered format (`FLAC 24/96`, `MP3\n320`), also for a queued track.\n- A `behavior.qobuz_quality` setting (MP3 320 up to FLAC 24/192).\n\nAlso in this PR: the decoded sources (Local, Subsonic, Radio, YouTube,\nQobuz, and the native queue slot) now apply the volume percent on the\nsame logarithmic curve as native streaming, so one setting is equally\nloud on every source. Cross-source helpers replace per-source copies\n(`snapshot_tracks`, `App::take_decoded_sessions_except`,\n`App::show_source_search_tracks`), and every sink clear runs off the\n`App` lock.\n\n# Testing\n\n- `cargo fmt --all`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`\n- `cargo test --no-default-features --features telemetry,tui` (873\npassed)\n- `cargo clippy --features all-sources -- -D warnings`\n- `cargo test --features all-sources` for the queue, qobuz, audio,\ngates, and dispatch modules on Windows (the Linux `all-sources` leg runs\nin CI)\n- Live: `cargo test --features qobuz -- --ignored live_qobuz\n--nocapture` (stream and seek to 90 s), plus a manual smoke test on\nWindows: login, browse, search, play, skip, seek, random play, queue\nfrom another source, format label, volume.\n\n#",
           "author": "LargeModGames",
           "date": "2026-08-27T11:20:10Z",
-          "url": "https://github.com/nohint404/spotatui/commit/9ba686871af40765b2d0686634fdd7624cf5d383",
+          "url": "https://github.com/psymariux/spotatui/commit/9ba686871af40765b2d0686634fdd7624cf5d383",
           "branch": "main"
         },
         {
@@ -383,7 +412,7 @@
           "message": "refactor(runtime): extract native-streaming startup (#486)\n\n# Summary\n\nMove the native-streaming startup out of the `tui`-gated\n`runtime/startup.rs` into a new `runtime/streaming/` module, gated on\n`streaming`:\n\n- `streaming/mod.rs` holds the pure saved-device decision\n(`startup_device_decision`) and its tests.\n- `streaming/launch.rs` holds the credential gate\n(`cache_streaming_credentials`), the deferred librespot bring-up\n(`deferred_streaming_startup`), and `DeferredStreamingContext`.\n- `startup.rs` keeps only the UI-launch half and calls the module.\n\nThe code is moved, not changed. The one structural difference is that\nthe inline credential gate became a function with early returns. The\n`Boot` dead-code attributes in `bootstrap.rs` now match the new gates.\n\nAdd a `headless-streaming` CI leg (`telemetry,streaming`, `check` +\n`clippy`) so the streaming startup and the player-event wiring build\nwith no terminal frontend in scope. This is the combination a second\nfrontend or a daemon consumes, and nothing covered it before. The three\ndoc copies describe the seven-leg matrix and the new\n`runtime/streaming/` unit.\n\n# Testing\n\n- `cargo fmt --all -- --check`: clean\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`: clean\n- `cargo test --no-default-features --features telemetry,tui`: 867\npassed, 0 failed\n- `cargo clippy --no-default-features --features telemetry,streaming --\n-D warnings` (the new leg): clean\n- `cargo clippy --no-default-features --features telemetry -- -D\nwarnings`: clean\n- `cargo test` (default features): 1167 passed, 0 failed\n\n# Additional notes\n\n- The two entry points in `launch.rs` carry `allow(dead_code)` without\n`tui`, so the new leg proves they compile with no terminal frontend, not\nthat they are live there. The leg has no `test` job.\n- This unblocks a `spotatui daemon` subcommand (#466), which needs the\nstreaming startup without `tui`.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui D",
           "author": "LargeModGames",
           "date": "2026-08-26T10:43:18Z",
-          "url": "https://github.com/nohint404/spotatui/commit/0b7d8bd4a29f24aa3564e17b69dd7199f98aebee",
+          "url": "https://github.com/psymariux/spotatui/commit/0b7d8bd4a29f24aa3564e17b69dd7199f98aebee",
           "branch": "main"
         },
         {
@@ -393,7 +422,7 @@
           "message": "feat(core): typed bootstrap onboarding requests (#485)\n\n# Summary\n\nThe two raw console prompts in `runtime/bootstrap.rs` (global song\ncounter opt-in, auth setup migration) now go through the `Onboarding`\ntrait instead of `println!` + `stdin().read_line`.\n\n- `core/onboarding.rs`: `OnboardingPrompt::Confirm { title, body,\nquestion }`, `OnboardingAnswer { Yes, No }` (both serde-derived),\n`BANNER_RULE`, the `confirm_answer` parser, and two trait methods\n`is_interactive` + `ask`.\n- `ConsoleOnboarding` and `HeadlessOnboarding` render the banner and\nread one line. `ScriptedOnboarding` records prompts and pops canned\nanswers, with a `non_interactive()` constructor.\n- `bootstrap.rs`: `prompt_global_song_count_opt_in` takes `&dyn\nOnboarding`; persistence is extracted into `persist_global_song_count`;\nthe migration question is `ask_auth_setup_migration`.\n\nBehavior is unchanged. The console output is byte-identical. Non-TTY\nruns still opt out of the counter silently, and the migration question\nstill answers yes on empty or piped stdin. The only routing change is\nthe `--reconfigure-auth` banner, which now goes through `info()` (same\nbytes).\n\n# Testing\n\n- `cargo fmt --all`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings` (also default and headless)\n- `cargo test --no-default-features --features telemetry,tui` (867),\ndefault (1167), headless (513), mcp-only (989), ai-dj-only (1143)\n- `tools/check_gates_ratchet.sh main`: `test_attribute_total` 1657 ->\n1666, nothing else moved\n\n# Additional notes\n\nNine new tests: the answer parser, the prompt predicate, prompt-text\npins, scripted yes/no persistence through a tempdir config, absent-file\ncreation, migration yes/no, and the non-interactive silent opt-out.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui Discord](https://spotatui.com/discord).</sub>\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n## Summary by CodeRabbit\n\n* **New Features**\n* Add",
           "author": "LargeModGames",
           "date": "2026-08-25T15:49:05Z",
-          "url": "https://github.com/nohint404/spotatui/commit/15f254e67c67e80d5b40acd21dd76edf50cb252c",
+          "url": "https://github.com/psymariux/spotatui/commit/15f254e67c67e80d5b40acd21dd76edf50cb252c",
           "branch": "main"
         },
         {
@@ -403,7 +432,7 @@
           "message": "refactor(tui): route handler tail through App::apply (#484)\n\n# Summary\n\nRoutes the remaining TUI handler tail through `App::apply` so every\nconverted key goes through the shared `Action` vocabulary instead of\nwriting `App` fields or building `IoEvent`s in `src/tui/handlers/`.\n\n- Adds the last batch of `Action` arms (queue edits, playlist\ncreate/delete, friends, radio stations, sort, discover, party, settings,\nDJ controls, copy URL, stats period, recommendations) with tests in\n`src/core/action/tests.rs`.\n- Converts the handlers (playbar, search results, artist, album,\nplaylist, podcasts, friends, party, settings, sort menu, queue menu,\nmouse, DJ) to `app.apply(Action::…)`; the mouse handler now re-enters\nonly the content tables through `handle_block_events` instead of\nsynthesized keys.\n- Moves the shared logic into the owning `core/app/` modules\n(`library.rs`, `playlists.rs`, `dj.rs`, `queue.rs`, `persistence.rs`,\n`friends.rs`, `party.rs`, and others).\n- Moves the ratchet baselines in the ratchet direction only:\n`app_field_writes_in_tui_handlers` 378 -> 317, `ioevent_refs_in_tui` 98\n-> 47, `synthetic_keys_in_mouse_handler` 15 -> 3,\n`action_refs_in_tui_handlers` 54 -> 173, `test_attribute_total` 1518 ->\n1653. `src/gates.rs` now counts both spellings of a synthesized\nkeystroke.\n- Updates the `core/app/` file and method counts in `CLAUDE.md`,\n`AGENTS.md`, and `.github/copilot-instructions.md`.\n\n# Testing\n\n- `cargo fmt --all -- --check` - clean\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings` - clean\n- `cargo test --no-default-features --features telemetry,tui` - 855\npassed, 0 failed\n- Manual smoke test of the converted keys with `cargo run --features\nall-sources` (playbar, source and device picker, party, sidebar\nplaylists, search results, artists and albums)\n\n# Additional notes\n\nNo user-visible behavior change is intended. The one intentional routing\nchange: Enter on a radio station in the sidebar now starts playback as a\none-item URI list",
           "author": "LargeModGames",
           "date": "2026-08-25T12:30:06Z",
-          "url": "https://github.com/nohint404/spotatui/commit/c802d174f1896b74a62a76ff91aebd32ab662ac3",
+          "url": "https://github.com/psymariux/spotatui/commit/c802d174f1896b74a62a76ff91aebd32ab662ac3",
           "branch": "main"
         },
         {
@@ -413,7 +442,7 @@
           "message": "fix(dj): scratch dir fallback for unwritable home (#483)\n\n# Summary\n\nFixes #478. In the Nix sandbox `HOME=/homeless-shelter`, so the DJ agent\nCLI's scratch dir `<config>/spotatui/dj-scratch` cannot be created.\n`spawn` with a cwd it cannot enter fails with ENOENT, and the error\nblamed the stub binary. The same failure hits any user whose config dir\nis unwritable.\n\n- `agent_scratch_dir()` now resolves once per process through a pure\n`scratch_dir_from(preferred, temp)`: the config scratch dir when it can\nbe created and read, otherwise `<temp>/dj-scratch`. Never the bare temp\nroot, so a stray `/tmp/CLAUDE.md` cannot become agent context. A\nrelative temp dir is skipped. One `warn` on fallback.\n- The spawn error now names the cwd and the OS error, so the next report\nof this class is self-diagnosing.\n\n# Testing\n\n- `cargo fmt --all`\n- `cargo clippy --no-default-features --features telemetry,tui,ai-dj --\n-D warnings` (clean)\n- `cargo test --no-default-features --features telemetry,tui,ai-dj\ninfra::dj` (157 passed, including the two new `scratch_dir_from` tests)\n- The originally failing test is `#[cfg(unix)]`, so the `ai-dj-only` CI\nleg is the gate for it. A Linux reproduction: `HOME=/nonexistent cargo\ntest --no-default-features --features telemetry,tui,ai-dj\na_refill_that_queues_nothing` fails before this change and passes after.\n\n# Additional notes\n\nThe pre-existing test\n`the_agent_scratch_dir_is_not_the_current_directory` calls the real\nresolver, which now creates `<config>/spotatui/dj-scratch` on the test\nmachine. Production creates the same empty directory on the first DJ\nturn.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui Discord](https://spotatui.com/discord).</sub>\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n## Summary by CodeRabbit\n\n- **Bug Fixes**\n- Improved reliability when creating temporary working directories for\nagent sessions.\n  - Scratch directories now use fresh, uniquely named private pat",
           "author": "LargeModGames",
           "date": "2026-08-22T18:37:53Z",
-          "url": "https://github.com/nohint404/spotatui/commit/2b8a2381822d705198aa7e5d349804939cb9dc93",
+          "url": "https://github.com/psymariux/spotatui/commit/2b8a2381822d705198aa7e5d349804939cb9dc93",
           "branch": "main"
         },
         {
@@ -423,7 +452,7 @@
           "message": "ci: add Codecov coverage upload (#482)\n\n# Summary\n\nAdds line coverage to CI and uploads it to Codecov.\n\n- A new `Coverage` job in `ci.yml` runs the tests with `cargo-llvm-cov`\non the `all-sources` feature set (the Linux release set) and uploads\n`lcov.info` with `codecov/codecov-action@v5`. `fail_ci_if_error` is\n`false`: a failed upload never turns the job red, and `Coverage` is not\na required check. Coverage is a report, not a gate.\n- A root `codecov.yml` makes both the `project` and the `patch` statuses\ninformational, so a PR never goes red on coverage. The PR comment is\ncondensed and only appears when coverage changes.\n- A Codecov badge in the README.\n\n# Testing\n\n- The workflow file was parsed with js-yaml; all seven jobs load and the\n`coverage` steps resolve as expected.\n- `codecov.yml` was validated with `https://codecov.io/validate`\n(result: `Valid!`).\n- The coverage build itself was not run locally: the `all-sources` set\nincludes `audio-viz` (PipeWire), which only compiles on Linux. The first\nCI run on this PR is the test.\n\n# Additional notes\n\n- The `CODECOV_TOKEN` Actions secret is set. Dependabot PRs do not see\nActions secrets, so they get no coverage report; their other jobs are\nunaffected. A Dependabot secret can be added later if wanted.\n- The feature list in the `coverage` job is a fourth copy of the\n`all-sources` string and must stay in sync with the other three and with\n`cd.yml`.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui Discord](https://spotatui.com/discord).</sub>\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai\n-->\n## Summary by CodeRabbit\n\n* **CI & Quality**\n  * Added automated code coverage reporting to continuous integration.\n  * Coverage results are uploaded to Codecov for visibility.\n\n* **Documentation**\n  * Added a coverage status badge to the project README.\n\n* **Reporting**\n* Configured coverage precision, rounding, and an 85–100% reporting\nrange.\n  * Kept project and change co",
           "author": "LargeModGames",
           "date": "2026-08-22T15:59:32Z",
-          "url": "https://github.com/nohint404/spotatui/commit/ef108cec72f4ce248a84fc67c22fa7d2bb121ac5",
+          "url": "https://github.com/psymariux/spotatui/commit/ef108cec72f4ce248a84fc67c22fa7d2bb121ac5",
           "branch": "main"
         },
         {
@@ -433,7 +462,7 @@
           "message": "ci(cd): auto release notes and direct download links (#481)\n\n# Summary\n\n- The release body no longer comes from a `CHANGELOG.md` section.\n`generate_release_notes: true` makes GitHub append its auto-generated\nnotes after the `## Downloads` block. The changelog extraction step and\nits missing-section guard are removed.\n- Each download row is now a direct link to the release asset, and two\n`.deb` rows (amd64, arm64) are added.\n- A `Resolve .deb file names` step after the artifact download reads the\nreal `.deb` file names from `artifacts/` and the two links use those\nnames. cargo-deb names the package from `Cargo.toml`, not from the tag,\nso this keeps the links correct for a prerelease (`0.42.0~rc1`) and for\na tag that differs from `Cargo.toml`. If a `.deb` is missing, the step\nfails before `Create Release`.\n\n# Testing\n\n- Ran the `Resolve .deb file names` script lines in bash against a\nscratch `artifacts/` directory with `GITHUB_OUTPUT` pointed at a file:\n- both files present -> exit 0, `amd64=spotatui_0.42.0~rc1-1_amd64.deb`,\n`arm64=spotatui_0.42.0~rc1-1_arm64.deb`\n  - arm64 file removed -> exit 1, `No arm64 .deb found in artifacts/`\n\n# Additional notes\n\n- A tag with no `CHANGELOG.md` entry no longer fails the release. That\nguard went with the extraction step.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui Discord](https://spotatui.com/discord).</sub>",
           "author": "LargeModGames",
           "date": "2026-08-22T13:35:03Z",
-          "url": "https://github.com/nohint404/spotatui/commit/0dba810b875fd8036d80ae684968b4245cca161a",
+          "url": "https://github.com/psymariux/spotatui/commit/0dba810b875fd8036d80ae684968b4245cca161a",
           "branch": "main"
         },
         {
@@ -443,7 +472,7 @@
           "message": "refactor(tui): route list handlers through App::apply (#480)\n\n# Summary\n\nConverts the three densest list handlers (`track_table.rs`,\n`library.rs`, `input.rs`, plus `ai_dj::open`) to the shared `Action`\nvocabulary, so every non-cursor consequence of a key press is one\n`app.apply(Action::…)` line.\n\n- 10 new `Action` variants: `PlayTrackInContext`, `SearchActiveSource`,\n`SearchPlaylistTracks`, `LoadMore(ListTarget)`, `Open(OpenTarget)`,\n`OpenLibrary(LibraryTarget)`, `SelectSource(Source)`,\n`OpenAddTrackDialog`, `OpenRemoveTrackDialog`,\n`RecommendFromTrack(TrackInfo)`.\n- `LoadMore` is the shared \"hit the end of the list\" consequence; it is\nself-guarding (no next page, active filter, or in-flight page all make\nit a no-op).\n- Library sidebar rows resolve by name through\n`LibraryTarget::from_name` instead of by position, so feature-gated rows\nno longer shift the indices of everything after them.\n- The moved consequences live on `App`: `open_library_section`,\n`begin_add_track_to_playlist_flow_from_selection`,\n`begin_remove_track_from_playlist_flow`, `set_active_source`,\n`load_recommendations_for_track`, `open_ai_dj_screen`,\n`start_playback_track_in_context`.\n- `Action::Search` stays on the Spotify catalog (the Lua\n`spotatui.search` contract). The terminal search box uses\n`SearchActiveSource`, which routes by the active browse source.\n- `Source` gains serde derives (the action wire shape).\n- Rider: the search-box cursor flickered at the 16 ms Home animation\ntick. The cursor is now hidden before the draw and positioned from\ninside the frame.\n\nThree deliberate behavior changes, all in `track_table.rs`, everything\nelse is 1:1:\n\n1. Random play (`S`) in a playlist table with no context id is skipped\ninstead of sent as a bare resume with a random offset.\n2. Enter on a playlist row with no track id and no context id is skipped\nlikewise.\n3. Random play in a Local or Subsonic playlist sends a one-item URI list\ninstead of the track in the context slot. All four source routers treat\nbo",
           "author": "LargeModGames",
           "date": "2026-08-22T13:15:04Z",
-          "url": "https://github.com/nohint404/spotatui/commit/48dacb1e40e0d3d355457f9d936c3f224d2ae761",
+          "url": "https://github.com/psymariux/spotatui/commit/48dacb1e40e0d3d355457f9d936c3f224d2ae761",
           "branch": "main"
         },
         {
@@ -453,7 +482,7 @@
           "message": "refactor(tui): route global keys through App::apply (#477)\n\n# Summary\n\n- New frontend-neutral `Action` variants for the global keybindings\n(`TogglePlayback`, `ForcePreviousTrack`, `SeekForward`/`SeekBackward`,\n`VolumeUp`/`VolumeDown`, `ToggleShuffle`,\n`JumpToAlbum`/`JumpToArtist`/`JumpToContext`, `GenerateRecap`,\n`ClosePopup`). Each arm delegates to the same ownership-aware `App`\nmethod the key already called, so behavior is identical by construction.\n- The global key handlers (`tui/handlers/mod.rs`, `help_menu::open`) now\nroute through `App::apply`; the navigation keys ride the existing\n`Navigate` arms. The three jump helpers move from the handler into\n`core/app`, and the production half of the global handler file no longer\nreferences `IoEvent` or rspotify types.\n- Fixes the error-page search latch: the search key on the error page\nused to rewrite the error frame in place into an input frame, and\nbecause navigation pushes dedupe on the top frame's id, every later\nerror silently failed to render for the rest of the session. The search\nkey now dismisses the error first and opens search on the screen below.\nThis is the one deliberate behavior change.\n- Ratchet: `action_refs_in_tui_handlers` 0 -> 22,\n`app_field_writes_in_tui_handlers` 388 -> 386, `ioevent_refs_in_tui` 129\n-> 125, `test_attribute_total` 1459 -> 1471 (16 new tests, 3 merged\npairs).\n\n# Testing\n\n- `cargo fmt --all -- --check` clean\n- clippy `-D warnings` clean on slim (`telemetry,tui`), default, and\nheadless (`telemetry`)\n- `cargo test` on all six legs (Windows; `audio-viz` swapped for\n`audio-viz-cpal` in the all-sources set): slim 690 / default 990 /\nheadless 390 / mcp-only 813 / ai-dj-only 953 / all-sources 1430, all\ngreen except the known pre-existing Windows-only\n`infra::local::tests::uri_round_trip`\n- `tools/check_gates_ratchet.sh main` ok; `Cargo.lock` untouched\n- Manual smoke test of the converted keys on a live session (playback,\nseek, volume, shuffle/repeat, queue, devices, jumps, popup close, and",
           "author": "LargeModGames",
           "date": "2026-08-21T19:29:08Z",
-          "url": "https://github.com/nohint404/spotatui/commit/62d25e3ca40cef885a541ba423598c9b19203e97",
+          "url": "https://github.com/psymariux/spotatui/commit/62d25e3ca40cef885a541ba423598c9b19203e97",
           "branch": "main"
         },
         {
@@ -463,7 +492,7 @@
           "message": "refactor(core): shared action vocabulary (#476)\n\n# Summary\n\nIntroduce the shared action vocabulary: `src/core/action/` holds\n`Action` (one serde-derived enum of frontend-neutral state changes),\n`App::apply` (the single write path), and `ActionOutcome`. Every\nproducer outside the network layer's own result handling now routes\n`App` mutations through it:\n\n- The scripting engine's `ScriptEffect` layer is deleted.\n`scripting/api.rs` queues `Action`s and the engine drains them through\n`App::apply`. The Lua surface, validation, and error texts are\nunchanged. `api.rs` no longer imports `IoEvent`, so a plugin cannot\nsmuggle a raw event: the 17 whitelisted `Dispatch(IoEvent)` construction\nsites became first-class variants.\n- The four mutating DJ/MCP paths route through `apply`: `skip_track`,\n`set_dj_vibe` (the generation bump moves into the arm, still exactly\nonce), `queue_tracks` (accepted count returned via\n`ActionOutcome::Queued`), and `play_now`. The hand-built `StartPlayback`\nin `play_now` is gone; `App::start_playback_uris` /\n`start_playback_context` are now its only builders.\n- New `ThemeField` enum plus `Theme::set` replace the two parallel\nstring whitelists that silently dropped a theme write on a typo; drift\nin either direction is now a compile error. `NavTarget` does the same\nfor `navigate` targets.\n- Serde derives land on `theme::Color`, the popup/widget types, and\n`Action` itself, so the wire shape for future frontend codegen exists\nbefore any consumer. `Color`'s doc marks the derives as the wire format,\ndistinct from the hand-parsed `config.yml` format.\n\nOne deliberate behavior change: MCP `skip_track` now calls\n`App::next_track` instead of dispatching a raw `IoEvent::NextTrack`. The\nraw event skipped the App-side ownership branches\n(suspend-context-for-queue, native shuffle bookkeeping); the transport\nmethod applies them.\n\nGates: `view_writes_outside_tui` 14 -> 12 (the two scripting view writes\nmoved behind `App` methods), `test_attribute_total` 1409 -> 1459 (",
           "author": "LargeModGames",
           "date": "2026-08-20T12:33:12Z",
-          "url": "https://github.com/nohint404/spotatui/commit/3f700918e5014ade0d5aa52daa4ead3ba7ff5093",
+          "url": "https://github.com/psymariux/spotatui/commit/3f700918e5014ade0d5aa52daa4ead3ba7ff5093",
           "branch": "main"
         },
         {
@@ -473,27 +502,7 @@
           "message": "refactor(app): group presentation state in App.view (#475)\n\n# Summary\n\nTwo commits, both about the TUI/core coupling ratchet.\n\n**`chore(gates): pin counters exactly, add Action adoption counter`**\n- `src/gates.rs` pins every counter in `tools/gates.count` exactly.\n`test_attribute_total` was a floor (any higher value passed silently),\nwhich leaves slack for a later test deletion.\n- New adoption counter `action_refs_in_tui_handlers`: word-bounded\n`Action::` uses in the production half of each handler file. It starts\nat 0 and may only rise, so a handler conversion that replaces field\nwrites with arbitrary `App` method calls cannot pass as progress.\n- `tools/check_gates_ratchet.sh` gets a `RISE_ONLY` list for the two\nadoption counters; the three doc copies describe the exact pin.\n\n**`refactor(app): group presentation state in App.view`**\n- New `src/core/app/view.rs`: `ViewState`, 70 public fields of terminal\npresentation state (cursor and selection indices, scroll offsets, edit\nbuffers, focus, popup flags, the help pager, the terminal viewport).\n`App` gains `pub view: ViewState`; the fields leave the flat `App`\nstruct and every `app.<field>` / `self.<field>` becomes\n`app.view.<field>`. Behavior is byte-identical: `ViewState::default()`\nreproduces the old initial values (the enums already carry `#[default]`\non those variants; the unsaved-settings prompt sets its yes/no cursor\nwhen it opens).\n- Two write-only cursors (`subsonic_playlists_index`,\n`radio_stations_index`) are deleted; nothing read them.\n`friend_user_search_input` (an edit buffer the network layer only reads)\njoins `view`.\n- `App::open_source_device_picker()` replaces two identical copies of\nthe picker-open sequence (the `manage_devices` key and the Lua\n`navigate(\"devices\")` effect). A dead `selected_device_index` write in\nthe CLI's `set_device` is gone. Two small runner equivalents\n(`saturating_sub`, `main_layout_margin + 1`).\n- Gates: the handler write counter skips `app.view.` chains (785 -> 388;\nthe rest ",
           "author": "LargeModGames",
           "date": "2026-08-19T17:34:17Z",
-          "url": "https://github.com/nohint404/spotatui/commit/8edf8c44685317a0455b4015c7f8e5eb447908c1",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "spotatui",
-          "sha": "3810f25b9424e5a8fcd0e6809b282a1e6ad2f489",
-          "message": "fix(streaming): queue slot survives track end (#474)\n\n# Summary\n\nA queued Spotify track's end silenced the next queue slot, and the\npolled \"device idle\" answer drew a paused playbar over audible queued\nplayback. Two halves:\n\n- **spotatui-librespot 0.8.3** (all seven crates bumped in lockstep).\n`Player::load` now returns the play request id it assigned, and Spirc\nrecords the ids of the loads it issues instead of adopting every\n`PlayRequestIdChanged` event. Before this, Spirc treated the queue's\ndirect `player.load` as its own context: at that track's end it ran\n`handle_next`, found no next track in a context it never loaded, and\nstopped the player under the slot the queue had just started.\n- **`mark_native_streaming_device_available` keeps `native_is_playing`\nwhile the queue slot plays a Spotify track.** The idle poll cannot see a\ndirect load, so clearing the flag there re-drew a paused playbar on\nevery poll after the user pressed play. Two unit tests cover both sides.\n- The recovery handler logs which restore route it takes (live player\nand rebuilt backend) with a compact snapshot summary, for the next\nnative-playback investigation.\n\n# Testing\n\n- Smoke-tested the full build: queued track ends, the next slot plays\nwith no silence, the playbar stays \"playing\" across polls.\n- `cargo fmt --all -- --check`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`\n- `cargo test --no-default-features --features telemetry,tui` (629\npassed)\n- `cargo test` (929 passed)\n- `cargo check --locked`\n- `tools/check_gates_ratchet.sh main` (test floor 1404 -> 1406)\n\n# Additional notes\n\n`Cargo.lock` moves exactly the seven `spotatui-librespot-*` entries\n(0.8.2 -> 0.8.3). The fork change is fork-only; see `SPOTATUI_FORK.md`\nin the fork repo for the carried patch list.\n\n---\n<sub>💬 Questions or want to chat with other contributors? Join the\n[spotatui Discord](https://spotatui.com/discord).</sub>\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai",
-          "author": "LargeModGames",
-          "date": "2026-08-19T11:43:06Z",
-          "url": "https://github.com/nohint404/spotatui/commit/3810f25b9424e5a8fcd0e6809b282a1e6ad2f489",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "spotatui",
-          "sha": "196bb3f78952b08cedd396542229eac0a46e6a47",
-          "message": "fix(streaming): restart the first track on Previous (#473)\n\n# Summary\n\nUnder native streaming, pressing Previous within the first 3 seconds of\nthe first track of a context (or after skipping back through every\nearlier track) left librespot in `Stopped`: audio went silent, the\nprogress bar froze, and Play/Pause/Seek could not recover it. spirc's\n`handle_play` cannot leave `Stopped` without a fresh load, so the only\nway out was starting a track by hand or transferring playback from\nanother device.\n\nThe root cause is upstream librespot: `spirc.rs::handle_prev` calls\n`handle_stop()` when `prev_track()` returns `None`. The fix therefore\nlives in our maintained fork, released as `spotatui-librespot-*`\n**0.8.2**\n([LargeModGames/spotatui-librespot@fa5f474](https://github.com/LargeModGames/spotatui-librespot/commit/fa5f474)):\n\n- `handle_prev` with nothing before the current track resets the state\nto the context start and reloads that track instead of stopping, the way\nSpotify's own clients do. Reloading the track that is already playing is\na seek inside the player, so the audio pipeline stays up.\n- `PlayerEvent::Seeked` now also syncs spirc's `play_status`. spotatui\nseeks the `Player` directly, so spirc's `position()` was stale after a\nseek and the 3-second rule in `handle_prev` misfired (a second Previous\nright after a restart restarted the track again instead of going back).\n\nThis PR bumps the seven `=`-pinned crates from 0.8.1 to 0.8.2 (only\nthose seven entries move in `Cargo.lock`) and adds the changelog entry.\n\nCloses #366\n\n# Testing\n\n- `cargo fmt --all -- --check`\n- `cargo clippy --no-default-features --features telemetry,tui -- -D\nwarnings`\n- `cargo test --no-default-features --features telemetry,tui` (629\npassed)\n- `cargo test --locked` on the default feature set (927 passed),\ncompiled against the registry 0.8.2 crates\n- Smoke test with the full `cargo run` build on the native device: the\nreporter's exact repro (single track from search, spam Previous under\n3s), a Pr",
-          "author": "LargeModGames",
-          "date": "2026-08-18T20:10:36Z",
-          "url": "https://github.com/nohint404/spotatui/commit/196bb3f78952b08cedd396542229eac0a46e6a47",
+          "url": "https://github.com/psymariux/spotatui/commit/8edf8c44685317a0455b4015c7f8e5eb447908c1",
           "branch": "main"
         }
       ],
@@ -505,8 +514,8 @@
           "title": "fix: handle Spotify Development Mode playlist 403s",
           "state": "merged",
           "date": "2026-09-22T02:24:53Z",
-          "url": "https://github.com/nohint404/spotatui/pull/1",
-          "author": "nohint404"
+          "url": "https://github.com/psymariux/spotatui/pull/1",
+          "author": "psymariux"
         }
       ],
       "releases": [],
@@ -515,537 +524,250 @@
       "unavailable": []
     },
     {
-      "name": "nohint-portfolio",
+      "latestCommit": {
+        "kind": "commit",
+        "repository": "psy-portfolio",
+        "sha": "547fd5f6ab9b437b0ad00fa73078d1d60457420e",
+        "message": "docs: describe side jukebox and entry audio behavior",
+        "author": "nohint404",
+        "date": "2026-10-03T02:35:08Z",
+        "url": "https://github.com/psymariux/psy-portfolio/commit/547fd5f6ab9b437b0ad00fa73078d1d60457420e",
+        "branch": "main"
+      },
+      "name": "psy-portfolio",
       "description": null,
-      "url": "https://github.com/nohint404/nohint-portfolio",
-      "homepage": "https://portfolio.nohint.dev/",
-      "language": "CSS",
+      "url": "https://github.com/psymariux/psy-portfolio",
+      "homepage": "https://psy-portfolio.vercel.app/",
+      "language": "TypeScript",
       "languages": {
-        "CSS": 48973,
-        "Astro": 28366,
-        "TypeScript": 24546,
-        "Svelte": 22175,
-        "JavaScript": 663
+        "TypeScript": 296038,
+        "Python": 13568,
+        "JavaScript": 4359,
+        "CSS": 1043
       },
       "topics": [],
       "stars": 1,
       "forks": 0,
-      "created": "2026-09-07T23:09:24Z",
-      "updated": "2026-09-08T06:42:11Z",
-      "pushed": "2026-09-08T06:41:59Z",
+      "created": "2026-10-02T12:33:36Z",
+      "updated": "2026-10-03T12:40:06Z",
+      "pushed": "2026-10-03T02:38:45Z",
       "branch": "main",
-      "size": 410,
+      "size": 5292,
       "fork": false,
-      "readme": "A light, interactive workbench for nohint404’s developer tooling and web interfaces. Astro static routes, Svelte islands, TypeScript and Bun. AGPL-3.0; see LICENSE.",
+      "readme": "A personal portfolio you can walk through.",
       "technologies": [
-        "CSS",
-        "Astro",
         "TypeScript",
-        "Svelte",
-        "JavaScript"
+        "Python",
+        "JavaScript",
+        "CSS",
+        "React",
+        "Next.js",
+        "Tailwind CSS",
+        "GSAP",
+        "Three.js"
       ],
       "commits": [
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "c7af6316d5b512ac5af7f0f495ed8e1dc72a953f",
-          "message": "fix: use documented discord.dog embed parameters",
+          "repository": "psy-portfolio",
+          "sha": "547fd5f6ab9b437b0ad00fa73078d1d60457420e",
+          "message": "docs: describe side jukebox and entry audio behavior",
           "author": "nohint404",
-          "date": "2026-09-08T06:39:45Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/c7af6316d5b512ac5af7f0f495ed8e1dc72a953f",
+          "date": "2026-10-03T02:35:08Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/547fd5f6ab9b437b0ad00fa73078d1d60457420e",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "c88187c9c99a12ef0b327c73726879a2e020745f",
-          "message": "style: simplify Discord scene around live profile embed",
+          "repository": "psy-portfolio",
+          "sha": "92104ce2bbc469d52018419edcbc52b9533383e4",
+          "message": "feat: unlock sound effects on the first user gesture",
           "author": "nohint404",
-          "date": "2026-09-08T06:34:44Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/c88187c9c99a12ef0b327c73726879a2e020745f",
+          "date": "2026-10-03T02:35:08Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/92104ce2bbc469d52018419edcbc52b9533383e4",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "eb3d3cede470112363be5e1c7ab857e2015a374b",
-          "message": "fix: use discord.dog live profile embed for personal presence",
+          "repository": "psy-portfolio",
+          "sha": "d9f472579da97cde2d6a540511dd0afd4fc98168",
+          "message": "feat: turn the jukebox into an interactive side panel",
           "author": "nohint404",
-          "date": "2026-09-08T06:34:10Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/eb3d3cede470112363be5e1c7ab857e2015a374b",
+          "date": "2026-10-03T02:35:08Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/d9f472579da97cde2d6a540511dd0afd4fc98168",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "acd7c146fcadf959a7b17b560e63b54c3c76ec51",
-          "message": "fix: tighten Discord presence client typing",
+          "repository": "psy-portfolio",
+          "sha": "34591bea6ff04e250f31f41564f7e7a35a5459d6",
+          "message": "docs: describe jukebox playback and music provenance",
           "author": "nohint404",
-          "date": "2026-09-08T06:26:34Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/acd7c146fcadf959a7b17b560e63b54c3c76ec51",
+          "date": "2026-10-03T00:17:05Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/34591bea6ff04e250f31f41564f7e7a35a5459d6",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "e06b79d33c36bf23100f84c51363ec8de85e72a1",
-          "message": "style: load personal Discord presence styles",
+          "repository": "psy-portfolio",
+          "sha": "6415f6a94089a38942d1c1132012b45edf232326",
+          "message": "feat: connect opt-in pixel music player to the workshop",
           "author": "nohint404",
-          "date": "2026-09-08T06:25:15Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/e06b79d33c36bf23100f84c51363ec8de85e72a1",
+          "date": "2026-10-03T00:17:04Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/6415f6a94089a38942d1c1132012b45edf232326",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "a8e2254debd696535be0da85317e1ce0c2cd833e",
-          "message": "feat: place Discord activity as a separate homepage scene",
+          "repository": "psy-portfolio",
+          "sha": "3a6278f060e7a2ed2b1451a8636ba117014f04b0",
+          "message": "feat: add local C418 records and vanilla jukebox assets",
           "author": "nohint404",
-          "date": "2026-09-08T06:24:58Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/a8e2254debd696535be0da85317e1ce0c2cd833e",
+          "date": "2026-10-03T00:17:04Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/3a6278f060e7a2ed2b1451a8636ba117014f04b0",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "5a6576659d21495514d146fea71b119a6eb2b52b",
-          "message": "feat: add Discord account id to profile data",
+          "repository": "psy-portfolio",
+          "sha": "bc81c5de1faa58a5c1a4a2a0c74d9fa0654d639e",
+          "message": "docs: align setup guide with published source",
           "author": "nohint404",
-          "date": "2026-09-08T06:24:44Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/5a6576659d21495514d146fea71b119a6eb2b52b",
+          "date": "2026-10-02T23:17:03Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/bc81c5de1faa58a5c1a4a2a0c74d9fa0654d639e",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "e6b8a6cb0036d038cbd900eb62d10cca90ebdc27",
-          "message": "style: add personal Discord presence scene",
+          "repository": "psy-portfolio",
+          "sha": "ea1d5484de862ef52135dcfef98891bfd30ecf1f",
+          "message": "docs: add product and design references",
           "author": "nohint404",
-          "date": "2026-09-08T06:24:27Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/e6b8a6cb0036d038cbd900eb62d10cca90ebdc27",
+          "date": "2026-10-02T23:15:30Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/ea1d5484de862ef52135dcfef98891bfd30ecf1f",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "09f794c2d512ea9a79c491562a96c06012c063e8",
-          "message": "feat: add personal Discord activity scene",
+          "repository": "psy-portfolio",
+          "sha": "6703137f9f5e5fa10d8edbf87ca5576fbd263ec2",
+          "message": "docs: add setup and licensing notes",
           "author": "nohint404",
-          "date": "2026-09-08T06:23:39Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/09f794c2d512ea9a79c491562a96c06012c063e8",
+          "date": "2026-10-02T23:14:48Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/6703137f9f5e5fa10d8edbf87ca5576fbd263ec2",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "3a312c264b5c170e52369ffbbf9d23059e8085ed",
-          "message": "feat: add live personal Discord presence component",
+          "repository": "psy-portfolio",
+          "sha": "42f4a78ebbb0bd4222ebab45e2e226d73f1d7e49",
+          "message": "docs: explain the portfolio architecture",
           "author": "nohint404",
-          "date": "2026-09-08T06:23:28Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/3a312c264b5c170e52369ffbbf9d23059e8085ed",
+          "date": "2026-10-02T23:13:26Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/42f4a78ebbb0bd4222ebab45e2e226d73f1d7e49",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "178aaee376e4865bfd58957efdfcb7a7c1506df4",
-          "message": "fix: remove PsyStream Discord activity styles",
+          "repository": "psy-portfolio",
+          "sha": "c8fa0476b9dfa88e615c521d5a2ecdce3e70e7f0",
+          "message": "docs: introduce the developer workshop",
           "author": "nohint404",
-          "date": "2026-09-08T06:19:54Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/178aaee376e4865bfd58957efdfcb7a7c1506df4",
+          "date": "2026-10-02T22:30:45Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/c8fa0476b9dfa88e615c521d5a2ecdce3e70e7f0",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "a14add48f2e0853c8d1f07bcd516cf96f446e128",
-          "message": "fix: remove PsyStream bot Discord activity section",
+          "repository": "psy-portfolio",
+          "sha": "2dc4ce93f111e93d075b6be925882dabccf01065",
+          "message": "feat: build the interactive voxel portfolio",
           "author": "nohint404",
-          "date": "2026-09-08T06:19:40Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/a14add48f2e0853c8d1f07bcd516cf96f446e128",
+          "date": "2026-10-02T23:11:58Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/2dc4ce93f111e93d075b6be925882dabccf01065",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "8b00b9be98cdded7e80c57da113e245e045c7972",
-          "message": "feat: add dedicated Discord Activity section to PsyStream",
+          "repository": "psy-portfolio",
+          "sha": "3eb65e901a4399a73dd6ced07980b1edfbeb3165",
+          "message": "feat: add persistent procedural shinobi sandbox",
           "author": "nohint404",
-          "date": "2026-09-08T06:14:01Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/8b00b9be98cdded7e80c57da113e245e045c7972",
+          "date": "2026-10-02T23:10:37Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/3eb65e901a4399a73dd6ced07980b1edfbeb3165",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "b1a42ee002619e897a3febd7e95c4da07574edff",
-          "message": "feat: add Discord Activity styling for PsyStream case study",
+          "repository": "psy-portfolio",
+          "sha": "5c2bc607a0787bc00c125dc9c12271827ea6cf8f",
+          "message": "feat: add public GitHub and contact routes",
           "author": "nohint404",
-          "date": "2026-09-08T06:13:38Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/b1a42ee002619e897a3febd7e95c4da07574edff",
+          "date": "2026-10-02T23:09:43Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/5c2bc607a0787bc00c125dc9c12271827ea6cf8f",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "6951544c6ae1ac649921c5ccda3fc966c73b421f",
-          "message": "copy: describe PsyStream streaming experience",
+          "repository": "psy-portfolio",
+          "sha": "8d704c88f3e2f0cd215e1f8e6ce7cd32a76541ac",
+          "message": "chore: bootstrap the Next.js application",
           "author": "nohint404",
-          "date": "2026-09-08T06:07:22Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/6951544c6ae1ac649921c5ccda3fc966c73b421f",
+          "date": "2026-10-02T23:09:25Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/8d704c88f3e2f0cd215e1f8e6ce7cd32a76541ac",
           "branch": "main"
         },
         {
           "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "4a2e7acefe7dda9f1aef5cba86c378f8f8aa8197",
-          "message": "fix: sync browser theme color with refined dark palette",
-          "author": "nohint404",
-          "date": "2026-09-08T05:53:36Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/4a2e7acefe7dda9f1aef5cba86c378f8f8aa8197",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "2e9df0d9d9721dce2297ad69797bf84da26a4cb3",
-          "message": "style: load featured PsyStream and refined dark theme",
-          "author": "nohint404",
-          "date": "2026-09-08T05:53:15Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/2e9df0d9d9721dce2297ad69797bf84da26a4cb3",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "35f5597cdb1ea446f282d8af85be7b49945a2ac3",
-          "message": "feat: add PsyStream private-codebase detail page",
-          "author": "nohint404",
-          "date": "2026-09-08T05:53:03Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/35f5597cdb1ea446f282d8af85be7b49945a2ac3",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "c449badf5e8fff8150474e2ef071d3498b73780f",
-          "message": "style: feature PsyStream and refine dark palette",
-          "author": "nohint404",
-          "date": "2026-09-08T05:52:46Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/c449badf5e8fff8150474e2ef071d3498b73780f",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "9f1be091c181479a79cb73805bd8c42a230df125",
-          "message": "feat: feature PsyStream first in selected work",
-          "author": "nohint404",
-          "date": "2026-09-08T05:51:35Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/9f1be091c181479a79cb73805bd8c42a230df125",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "f0a18fd0049523618c30c9ac67c5d2a81e113584",
-          "message": "feat: add PsyStream brand logo",
-          "author": "nohint404",
-          "date": "2026-09-08T05:50:39Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/f0a18fd0049523618c30c9ac67c5d2a81e113584",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "60203a88d5432c0a342ba8b8b3001753e941bc08",
-          "message": "copy: clarify live stream surface ownership",
-          "author": "nohint404",
-          "date": "2026-09-08T05:30:43Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/60203a88d5432c0a342ba8b8b3001753e941bc08",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "dda33d11b3b78fd63f17608cde59b7affb2dae85",
-          "message": "style: theme the live stream surface",
-          "author": "nohint404",
-          "date": "2026-09-08T05:30:23Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/dda33d11b3b78fd63f17608cde59b7affb2dae85",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "f01c9a959c5a97b224ce93697118be9da7ca7982",
-          "message": "feat: add stream.psymariux.dev as a live surface",
-          "author": "nohint404",
-          "date": "2026-09-08T05:29:49Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/f01c9a959c5a97b224ce93697118be9da7ca7982",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "856b00c0fc2d6df8c1854a18b7eae6cc306bf118",
-          "message": "feat: add cohesive blue dark theme",
-          "author": "nohint404",
-          "date": "2026-09-08T05:23:14Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/856b00c0fc2d6df8c1854a18b7eae6cc306bf118",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "2b4e187fa616ba52a127c7210003790563300d7d",
-          "message": "feat: resolve saved or system theme before first paint",
-          "author": "nohint404",
-          "date": "2026-09-08T05:22:50Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/2b4e187fa616ba52a127c7210003790563300d7d",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "258bb85cdb2400eaf3d6463d717b1fe79da69fd9",
-          "message": "feat: expose theme picker in global navigation",
-          "author": "nohint404",
-          "date": "2026-09-08T05:22:37Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/258bb85cdb2400eaf3d6463d717b1fe79da69fd9",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "bbe439f5d0d34e544373a6aa199fbcbcba84f7d1",
-          "message": "feat: add light dark system theme picker",
-          "author": "nohint404",
-          "date": "2026-09-08T05:22:28Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/bbe439f5d0d34e544373a6aa199fbcbcba84f7d1",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "b087b4402ce50799e74c21899ab82811f8d3dbd7",
-          "message": "design: align browser chrome with sky palette",
-          "author": "nohint404",
-          "date": "2026-09-08T05:16:48Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/b087b4402ce50799e74c21899ab82811f8d3dbd7",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "9ba2319eb6e8ede65c95fee811a36f1b6c84a540",
-          "message": "design: unify palette around light Nintendo-inspired blues",
-          "author": "nohint404",
-          "date": "2026-09-08T05:16:38Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/9ba2319eb6e8ede65c95fee811a36f1b6c84a540",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "98ea2c1820907366e224c16b770334ff698e722a",
-          "message": "design: apply daylight palette globally",
-          "author": "nohint404",
-          "date": "2026-09-08T05:11:37Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/98ea2c1820907366e224c16b770334ff698e722a",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "675a12fdd341f9a78c6355592c5cda9bc38fbbcb",
-          "message": "design: refresh portfolio with daylight palette",
-          "author": "nohint404",
-          "date": "2026-09-08T05:11:25Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/675a12fdd341f9a78c6355592c5cda9bc38fbbcb",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "08950a02317abba4eee2fad476f5aa2ed00bbff1",
-          "message": "Color direction: semantic tokens, dark lab, scene canvas\n\n- Warm paper/ink tokens, per-project accents from data, red signature dots incl contact CTA\n- Lab moves to near-black scene; body canvas interpolates pale tints via data-scene observer\n- Paper breathing gaps between project worlds; terminal success gets green marker\n- Retire grey token remnants in maps and tool world",
-          "author": "nohint404",
-          "date": "2026-09-08T05:07:24Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/08950a02317abba4eee2fad476f5aa2ed00bbff1",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "f3274fc35c866b4f36d71964374fa5ce70ddc063",
-          "message": "Redesign: warm playful workbench identity\n\n- Paper/ink/cobalt/yellow scene system, editorial hero with whoami-to-identity signature and draggable workspace toy\n- Project mini-worlds per scene color, safe LAB terminal, contextual stack, magnetic contact CTA\n- Delete legacy boot overlay/components, fix Monolith OG fallback, accessible Discord feedback\n- Native motion only (WAAPI/SVG/rAF spring), new unit tests, DESIGN.md + direction docs",
-          "author": "nohint404",
-          "date": "2026-09-08T04:56:01Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/f3274fc35c866b4f36d71964374fa5ce70ddc063",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "c9738b7dc8a251cd5a72fb206f4ffb440027ead2",
-          "message": "Contact: GitHub first, Discord copy row, drop name cursor\n\n- Contact stack: GitHub, email, Discord (owner-supplied handle, copyable, no invented URL)\n- Remove trailing cursor underscore from nav and footer identity\n- Discord handle lives in profile data layer",
-          "author": "nohint404",
-          "date": "2026-09-08T04:02:38Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/c9738b7dc8a251cd5a72fb206f4ffb440027ead2",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "f7ccd8c49a3d4af2c2f9a8c0eb6cb01c3b7d2488",
-          "message": "Add public contact email\n\n- contact@nohint.dev (owner-supplied) enables mailto CTA and palette copy-email",
-          "author": "nohint404",
-          "date": "2026-09-08T03:56:09Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/f7ccd8c49a3d4af2c2f9a8c0eb6cb01c3b7d2488",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "a3a4b08e5219c77c48523edea8b55421ee835025",
-          "message": "Soften formal copy across hero, work, map, contact",
-          "author": "nohint404",
-          "date": "2026-09-08T03:39:49Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/a3a4b08e5219c77c48523edea8b55421ee835025",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "f22bbcb4f7d8de2195a1f1b1070925184f10951a",
-          "message": "Third project is now this site (old React repo deleted)\n\n- Replace stale React/Vite entry with nohint-portfolio (Astro/Svelte, owned work)\n- Update selector preview, capabilities and about copy to match\n- Mark old research record as superseded in docs",
-          "author": "nohint404",
-          "date": "2026-09-08T03:25:49Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/f22bbcb4f7d8de2195a1f1b1070925184f10951a",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "6dc3ad20b4bb2957715bf52d09338b5813243a4d",
-          "message": "Fix CI: pin TypeScript 6, Bun version, Vercel setup\n\n- Downgrade typescript 7.0.2 -> ~6.0.3 (astro check has no TS7 API support)\n- Add .bun-version (1.3.14), CI uses it with frozen lockfile\n- Add vercel.json (astro, bun build, dist output) for Vercel deploy",
-          "author": "nohint404",
-          "date": "2026-09-08T03:19:16Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/6dc3ad20b4bb2957715bf52d09338b5813243a4d",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "f93b06da506018ba0b89b3e99bfb49c4983f168e",
-          "message": "Portfolio: Astro + Svelte + Bun, shell-boot experience, verified projects\n\n- Static Astro site with selective Svelte islands, TypeScript, Bun only\n- Centered shell boot (bun build log, file tree, progress bar)\n- Work: vs-notrack (owned), Monolith (fraa2a, documented contributions), Portfolio (earlier work)\n- Command palette, project selector, architecture graphs, capabilities\n- CI: check, svelte-check, tests, build, static validation",
-          "author": "nohint404",
-          "date": "2026-09-08T03:14:47Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/f93b06da506018ba0b89b3e99bfb49c4983f168e",
-          "branch": "main"
-        },
-        {
-          "kind": "commit",
-          "repository": "nohint-portfolio",
-          "sha": "ecc88e08171e15a524299f91b1b2b471ddd3b50a",
+          "repository": "psy-portfolio",
+          "sha": "337d9792e59ff9d1f988ae6a407cba3ddbd86b82",
           "message": "Initial commit",
-          "author": "nohint404",
-          "date": "2026-09-07T23:09:25Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/commit/ecc88e08171e15a524299f91b1b2b471ddd3b50a",
+          "author": "psymariux",
+          "date": "2026-10-02T12:33:38Z",
+          "url": "https://github.com/psymariux/psy-portfolio/commit/337d9792e59ff9d1f988ae6a407cba3ddbd86b82",
           "branch": "main"
         }
       ],
       "pullRequests": [
         {
           "kind": "pr",
-          "repository": "nohint-portfolio",
-          "number": 10,
-          "title": "fix: use documented discord.dog embed parameters",
-          "state": "merged",
-          "date": "2026-09-08T06:41:59Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/10",
-          "author": "nohint404"
-        },
-        {
-          "kind": "pr",
-          "repository": "nohint-portfolio",
-          "number": 9,
-          "title": "fix: make personal Discord presence render reliably",
-          "state": "merged",
-          "date": "2026-09-08T06:36:29Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/9",
-          "author": "nohint404"
-        },
-        {
-          "kind": "pr",
-          "repository": "nohint-portfolio",
-          "number": 8,
-          "title": "feat: replace PsyStream bot activity with personal Discord presence",
-          "state": "merged",
-          "date": "2026-09-08T06:28:48Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/8",
-          "author": "nohint404"
-        },
-        {
-          "kind": "pr",
-          "repository": "nohint-portfolio",
-          "number": 7,
-          "title": "feat: refine PsyStream detail copy",
-          "state": "merged",
-          "date": "2026-09-08T06:15:22Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/7",
-          "author": "nohint404"
-        },
-        {
-          "kind": "pr",
-          "repository": "nohint-portfolio",
-          "number": 6,
-          "title": "feat: feature PsyStream first with logo and private project page",
-          "state": "merged",
-          "date": "2026-09-08T05:55:56Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/6",
-          "author": "nohint404"
-        },
-        {
-          "kind": "pr",
-          "repository": "nohint-portfolio",
-          "number": 5,
-          "title": "feat: add stream.psymariux.dev as a live portfolio surface",
-          "state": "merged",
-          "date": "2026-09-08T05:31:40Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/5",
-          "author": "nohint404"
-        },
-        {
-          "kind": "pr",
-          "repository": "nohint-portfolio",
+          "repository": "psy-portfolio",
           "number": 4,
-          "title": "feat: add theme modes and live stream surface",
+          "title": "feat: add interactive side jukebox and entry sound unlock",
           "state": "merged",
-          "date": "2026-09-08T05:24:11Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/4",
-          "author": "nohint404"
+          "date": "2026-10-03T02:38:46Z",
+          "url": "https://github.com/psymariux/psy-portfolio/pull/4",
+          "author": "psymariux"
         },
         {
           "kind": "pr",
-          "repository": "nohint-portfolio",
+          "repository": "psy-portfolio",
           "number": 3,
-          "title": "design: unify portfolio around a light sky-blue palette",
+          "title": "feat: add opt-in local C418 jukebox",
           "state": "merged",
-          "date": "2026-09-08T05:17:45Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/3",
-          "author": "nohint404"
+          "date": "2026-10-03T02:15:11Z",
+          "url": "https://github.com/psymariux/psy-portfolio/pull/3",
+          "author": "psymariux"
         },
         {
           "kind": "pr",
-          "repository": "nohint-portfolio",
+          "repository": "psy-portfolio",
           "number": 2,
-          "title": "design: switch portfolio to a brighter daylight palette",
+          "title": "feat: publish the Psymariux developer portfolio",
           "state": "merged",
-          "date": "2026-09-08T05:12:43Z",
-          "url": "https://github.com/nohint404/nohint-portfolio/pull/2",
-          "author": "nohint404"
+          "date": "2026-10-02T23:20:19Z",
+          "url": "https://github.com/psymariux/psy-portfolio/pull/2",
+          "author": "psymariux"
+        },
+        {
+          "kind": "pr",
+          "repository": "psy-portfolio",
+          "number": 1,
+          "title": "feat: publish the complete portfolio workshop",
+          "state": "merged",
+          "date": "2026-10-02T23:20:17Z",
+          "url": "https://github.com/psymariux/psy-portfolio/pull/1",
+          "author": "psymariux"
         }
       ],
       "releases": [],
@@ -1054,9 +776,19 @@
       "unavailable": []
     },
     {
+      "latestCommit": {
+        "kind": "commit",
+        "repository": "vs-notrack",
+        "sha": "b107464c01198e3f136e7c8a930af0b20972a9b8",
+        "message": "Disable Copilot extensions directly and block built-in reinstall\n\n- Persistent disable via state.vscdb (gear-menu Disable equivalent)\n- --disable-extension flags in launchers/shortcuts\n- Block builtInExtensionsEnabledWithAutoUpdates via product.json override\n- Handle built-in copilot-chat uninstall refusal with clear message\n- Try all CLIs (code, code-insiders, codium), wait for VSCode exit",
+        "author": "nohint404",
+        "date": "2026-09-07T17:08:43Z",
+        "url": "https://github.com/psymariux/vs-notrack/commit/b107464c01198e3f136e7c8a930af0b20972a9b8",
+        "branch": "main"
+      },
       "name": "vs-notrack",
       "description": null,
-      "url": "https://github.com/nohint404/vs-notrack",
+      "url": "https://github.com/psymariux/vs-notrack",
       "homepage": null,
       "language": "Shell",
       "languages": {
@@ -1085,7 +817,7 @@
           "message": "Disable Copilot extensions directly and block built-in reinstall\n\n- Persistent disable via state.vscdb (gear-menu Disable equivalent)\n- --disable-extension flags in launchers/shortcuts\n- Block builtInExtensionsEnabledWithAutoUpdates via product.json override\n- Handle built-in copilot-chat uninstall refusal with clear message\n- Try all CLIs (code, code-insiders, codium), wait for VSCode exit",
           "author": "nohint404",
           "date": "2026-09-07T17:08:43Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/b107464c01198e3f136e7c8a930af0b20972a9b8",
+          "url": "https://github.com/psymariux/vs-notrack/commit/b107464c01198e3f136e7c8a930af0b20972a9b8",
           "branch": "main"
         },
         {
@@ -1095,7 +827,7 @@
           "message": "chore: finalize main task changes",
           "author": "nohint404",
           "date": "2026-09-07T16:52:28Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/9a68e5486491b5b5cab0584085b897bbd7cf048c",
+          "url": "https://github.com/psymariux/vs-notrack/commit/9a68e5486491b5b5cab0584085b897bbd7cf048c",
           "branch": "main"
         },
         {
@@ -1105,7 +837,7 @@
           "message": "chore: finalize main task changes",
           "author": "nohint404",
           "date": "2026-09-07T16:44:21Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/2280940c35cc2d5b654623d89d2cba6852ab3ce8",
+          "url": "https://github.com/psymariux/vs-notrack/commit/2280940c35cc2d5b654623d89d2cba6852ab3ce8",
           "branch": "main"
         },
         {
@@ -1115,7 +847,7 @@
           "message": "pro menu styling with tty-gated colors",
           "author": "nohint404",
           "date": "2026-09-07T04:44:27Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/05f55ec84ffc297bd448055516adf8b40077f748",
+          "url": "https://github.com/psymariux/vs-notrack/commit/05f55ec84ffc297bd448055516adf8b40077f748",
           "branch": "main"
         },
         {
@@ -1125,7 +857,7 @@
           "message": "pure ASCII scripts plus BOM for legacy parser compatibility",
           "author": "nohint404",
           "date": "2026-09-07T04:23:10Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/4f7170caef7ffe3a77fdecf6eb3e704f1f6325da",
+          "url": "https://github.com/psymariux/vs-notrack/commit/4f7170caef7ffe3a77fdecf6eb3e704f1f6325da",
           "branch": "main"
         },
         {
@@ -1135,7 +867,7 @@
           "message": "probe clean-cut prefixes of file head",
           "author": "nohint404",
           "date": "2026-09-07T04:21:14Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/113295ebd54c7841305347bfa8dd54e60ba0ae59",
+          "url": "https://github.com/psymariux/vs-notrack/commit/113295ebd54c7841305347bfa8dd54e60ba0ae59",
           "branch": "main"
         },
         {
@@ -1145,7 +877,7 @@
           "message": "probe suffix segments for silent quote flip",
           "author": "nohint404",
           "date": "2026-09-07T04:19:12Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/eb7d2a79d89c4caa77166683dc63a23178b65bac",
+          "url": "https://github.com/psymariux/vs-notrack/commit/eb7d2a79d89c4caa77166683dc63a23178b65bac",
           "branch": "main"
         },
         {
@@ -1155,7 +887,7 @@
           "message": "probe by excising whole blocks",
           "author": "nohint404",
           "date": "2026-09-07T04:17:41Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/01d61c830a8802536f8ccdcca7bb0bdcfd67fcb6",
+          "url": "https://github.com/psymariux/vs-notrack/commit/01d61c830a8802536f8ccdcca7bb0bdcfd67fcb6",
           "branch": "main"
         },
         {
@@ -1165,7 +897,7 @@
           "message": "probe suspicious line-248 constructs in isolation",
           "author": "nohint404",
           "date": "2026-09-07T04:15:52Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/2d821cb3378df790d3493e4cf1cd248afe1175b5",
+          "url": "https://github.com/psymariux/vs-notrack/commit/2d821cb3378df790d3493e4cf1cd248afe1175b5",
           "branch": "main"
         },
         {
@@ -1175,7 +907,7 @@
           "message": "probe prefixes with positions to locate string desync",
           "author": "nohint404",
           "date": "2026-09-07T04:14:18Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/7c69c958c269d89e4f6f462c90e3d271cb452838",
+          "url": "https://github.com/psymariux/vs-notrack/commit/7c69c958c269d89e4f6f462c90e3d271cb452838",
           "branch": "main"
         },
         {
@@ -1185,7 +917,7 @@
           "message": "probe before syntax check so it always runs",
           "author": "nohint404",
           "date": "2026-09-07T04:11:27Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/e60eb9d47dec6468abe7c2842e6488ee98a57de2",
+          "url": "https://github.com/psymariux/vs-notrack/commit/e60eb9d47dec6468abe7c2842e6488ee98a57de2",
           "branch": "main"
         },
         {
@@ -1195,7 +927,7 @@
           "message": "CI probe step for 5.1 parser diagnostics",
           "author": "nohint404",
           "date": "2026-09-07T04:09:29Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/00af927bbdf7043fa025e8f92c97275f41f2b83d",
+          "url": "https://github.com/psymariux/vs-notrack/commit/00af927bbdf7043fa025e8f92c97275f41f2b83d",
           "branch": "main"
         },
         {
@@ -1205,7 +937,7 @@
           "message": "hosts match without regex to satisfy older parser",
           "author": "nohint404",
           "date": "2026-09-07T04:07:28Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/106ad1c8b1a3035106db7da277dc2f311f46613d",
+          "url": "https://github.com/psymariux/vs-notrack/commit/106ad1c8b1a3035106db7da277dc2f311f46613d",
           "branch": "main"
         },
         {
@@ -1215,7 +947,7 @@
           "message": "CI fixes: SC2038-proof cleanup, PS errors with line numbers",
           "author": "nohint404",
           "date": "2026-09-07T04:01:59Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/c826bdda2067a23f5d76a63e11bb205c093d0548",
+          "url": "https://github.com/psymariux/vs-notrack/commit/c826bdda2067a23f5d76a63e11bb205c093d0548",
           "branch": "main"
         },
         {
@@ -1225,7 +957,7 @@
           "message": "CI fixes: shellcheck-clean test, ParseInput-based PS syntax check",
           "author": "nohint404",
           "date": "2026-09-07T03:59:44Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/d6998c9359a03887463691c235c29a98eb17b70b",
+          "url": "https://github.com/psymariux/vs-notrack/commit/d6998c9359a03887463691c235c29a98eb17b70b",
           "branch": "main"
         },
         {
@@ -1235,7 +967,7 @@
           "message": "ascii boxed menu styling for interactive mode",
           "author": "nohint404",
           "date": "2026-09-07T03:57:57Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/0b9ef9d4e90eef26530e23c4c42693e451a0acc6",
+          "url": "https://github.com/psymariux/vs-notrack/commit/0b9ef9d4e90eef26530e23c4c42693e451a0acc6",
           "branch": "main"
         },
         {
@@ -1245,7 +977,7 @@
           "message": "interactive curl menu + Copilot uninstall/purge (sh menu, ps1 -PurgeCopilot)",
           "author": "nohint404",
           "date": "2026-09-07T03:57:03Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/c5ea4fb3c1c5d6be6dccbac7a430f156b367c7d2",
+          "url": "https://github.com/psymariux/vs-notrack/commit/c5ea4fb3c1c5d6be6dccbac7a430f156b367c7d2",
           "branch": "main"
         },
         {
@@ -1255,7 +987,7 @@
           "message": "English output everywhere (scripts + CI)",
           "author": "nohint404",
           "date": "2026-09-07T03:54:18Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/9b567b232d2ffddb32c134e6845bd38e8ec7fb1f",
+          "url": "https://github.com/psymariux/vs-notrack/commit/9b567b232d2ffddb32c134e6845bd38e8ec7fb1f",
           "branch": "main"
         },
         {
@@ -1265,7 +997,7 @@
           "message": "fix sudo-pipe: honor SUDO_USER home, correct sudo placement hint",
           "author": "nohint404",
           "date": "2026-09-07T03:53:19Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/010b75cf6416500ca20dfd54022387fcaec70b9f",
+          "url": "https://github.com/psymariux/vs-notrack/commit/010b75cf6416500ca20dfd54022387fcaec70b9f",
           "branch": "main"
         },
         {
@@ -1275,7 +1007,7 @@
           "message": "README: jsDelivr mirror fallback for raw.githubusercontent.com DNS issues",
           "author": "nohint404",
           "date": "2026-09-07T03:50:23Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/c3a8acfbe1e9a621d1872c3a0e6943ada261a589",
+          "url": "https://github.com/psymariux/vs-notrack/commit/c3a8acfbe1e9a621d1872c3a0e6943ada261a589",
           "branch": "main"
         },
         {
@@ -1285,7 +1017,7 @@
           "message": "curl-pipe support everywhere + README in English",
           "author": "nohint404",
           "date": "2026-09-07T03:43:25Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/d100199ded81bd5308655b7ccd3f0cd3a3ac7282",
+          "url": "https://github.com/psymariux/vs-notrack/commit/d100199ded81bd5308655b7ccd3f0cd3a3ac7282",
           "branch": "main"
         },
         {
@@ -1293,9 +1025,9 @@
           "repository": "vs-notrack",
           "sha": "6919038612773e44eea771eb6d494a1eaf4041dc",
           "message": "Fix heading formatting in README.md",
-          "author": "nohint404",
+          "author": "psymariux",
           "date": "2026-09-07T03:42:04Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/6919038612773e44eea771eb6d494a1eaf4041dc",
+          "url": "https://github.com/psymariux/vs-notrack/commit/6919038612773e44eea771eb6d494a1eaf4041dc",
           "branch": "main"
         },
         {
@@ -1305,7 +1037,7 @@
           "message": "ponytail: strip comments, unified Linux+macOS script, drop dead code",
           "author": "nohint404",
           "date": "2026-09-07T03:39:37Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/24f13c67e7162ae3b00292cd3275aba23c0dd375",
+          "url": "https://github.com/psymariux/vs-notrack/commit/24f13c67e7162ae3b00292cd3275aba23c0dd375",
           "branch": "main"
         },
         {
@@ -1315,7 +1047,7 @@
           "message": "☠️ vs-notrack: VSCode Microsoft Tracker Obliterator (Win/Linux/macOS, NORMAL+STRICT, CI, docs)",
           "author": "nohint404",
           "date": "2026-09-07T03:38:04Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/d5d8c55fe223042ab8bab7ab267f6e1781fff39b",
+          "url": "https://github.com/psymariux/vs-notrack/commit/d5d8c55fe223042ab8bab7ab267f6e1781fff39b",
           "branch": "main"
         },
         {
@@ -1323,9 +1055,9 @@
           "repository": "vs-notrack",
           "sha": "e6c75a0673707d446e13a5c92d1ebbe1aae1c836",
           "message": "Initial commit",
-          "author": "nohint404",
+          "author": "psymariux",
           "date": "2026-09-07T03:34:16Z",
-          "url": "https://github.com/nohint404/vs-notrack/commit/e6c75a0673707d446e13a5c92d1ebbe1aae1c836",
+          "url": "https://github.com/psymariux/vs-notrack/commit/e6c75a0673707d446e13a5c92d1ebbe1aae1c836",
           "branch": "main"
         }
       ],
@@ -1339,13 +1071,133 @@
   "activity": [
     {
       "kind": "pr",
+      "repository": "psy-portfolio",
+      "number": 4,
+      "title": "feat: add interactive side jukebox and entry sound unlock",
+      "state": "merged",
+      "date": "2026-10-03T02:38:46Z",
+      "url": "https://github.com/psymariux/psy-portfolio/pull/4",
+      "author": "psymariux"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "547fd5f6ab9b437b0ad00fa73078d1d60457420e",
+      "message": "docs: describe side jukebox and entry audio behavior",
+      "author": "nohint404",
+      "date": "2026-10-03T02:35:08Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/547fd5f6ab9b437b0ad00fa73078d1d60457420e",
+      "branch": "main"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "92104ce2bbc469d52018419edcbc52b9533383e4",
+      "message": "feat: unlock sound effects on the first user gesture",
+      "author": "nohint404",
+      "date": "2026-10-03T02:35:08Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/92104ce2bbc469d52018419edcbc52b9533383e4",
+      "branch": "main"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "d9f472579da97cde2d6a540511dd0afd4fc98168",
+      "message": "feat: turn the jukebox into an interactive side panel",
+      "author": "nohint404",
+      "date": "2026-10-03T02:35:08Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/d9f472579da97cde2d6a540511dd0afd4fc98168",
+      "branch": "main"
+    },
+    {
+      "kind": "pr",
+      "repository": "psy-portfolio",
+      "number": 3,
+      "title": "feat: add opt-in local C418 jukebox",
+      "state": "merged",
+      "date": "2026-10-03T02:15:11Z",
+      "url": "https://github.com/psymariux/psy-portfolio/pull/3",
+      "author": "psymariux"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "34591bea6ff04e250f31f41564f7e7a35a5459d6",
+      "message": "docs: describe jukebox playback and music provenance",
+      "author": "nohint404",
+      "date": "2026-10-03T00:17:05Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/34591bea6ff04e250f31f41564f7e7a35a5459d6",
+      "branch": "main"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "6415f6a94089a38942d1c1132012b45edf232326",
+      "message": "feat: connect opt-in pixel music player to the workshop",
+      "author": "nohint404",
+      "date": "2026-10-03T00:17:04Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/6415f6a94089a38942d1c1132012b45edf232326",
+      "branch": "main"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "3a6278f060e7a2ed2b1451a8636ba117014f04b0",
+      "message": "feat: add local C418 records and vanilla jukebox assets",
+      "author": "nohint404",
+      "date": "2026-10-03T00:17:04Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/3a6278f060e7a2ed2b1451a8636ba117014f04b0",
+      "branch": "main"
+    },
+    {
+      "kind": "pr",
+      "repository": "psy-portfolio",
+      "number": 2,
+      "title": "feat: publish the Psymariux developer portfolio",
+      "state": "merged",
+      "date": "2026-10-02T23:20:19Z",
+      "url": "https://github.com/psymariux/psy-portfolio/pull/2",
+      "author": "psymariux"
+    },
+    {
+      "kind": "pr",
+      "repository": "psy-portfolio",
+      "number": 1,
+      "title": "feat: publish the complete portfolio workshop",
+      "state": "merged",
+      "date": "2026-10-02T23:20:17Z",
+      "url": "https://github.com/psymariux/psy-portfolio/pull/1",
+      "author": "psymariux"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "bc81c5de1faa58a5c1a4a2a0c74d9fa0654d639e",
+      "message": "docs: align setup guide with published source",
+      "author": "nohint404",
+      "date": "2026-10-02T23:17:03Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/bc81c5de1faa58a5c1a4a2a0c74d9fa0654d639e",
+      "branch": "main"
+    },
+    {
+      "kind": "commit",
+      "repository": "psy-portfolio",
+      "sha": "ea1d5484de862ef52135dcfef98891bfd30ecf1f",
+      "message": "docs: add product and design references",
+      "author": "nohint404",
+      "date": "2026-10-02T23:15:30Z",
+      "url": "https://github.com/psymariux/psy-portfolio/commit/ea1d5484de862ef52135dcfef98891bfd30ecf1f",
+      "branch": "main"
+    },
+    {
+      "kind": "pr",
       "repository": "spotatui",
       "number": 1,
       "title": "fix: handle Spotify Development Mode playlist 403s",
       "state": "merged",
       "date": "2026-09-22T02:24:53Z",
-      "url": "https://github.com/nohint404/spotatui/pull/1",
-      "author": "nohint404"
+      "url": "https://github.com/psymariux/spotatui/pull/1",
+      "author": "psymariux"
     },
     {
       "kind": "commit",
@@ -1354,387 +1206,127 @@
       "message": "fix(network): handle Development Mode playlist 403s",
       "author": "nohint404",
       "date": "2026-09-22T02:23:33Z",
-      "url": "https://github.com/nohint404/spotatui/commit/f99254bca451e2e8fd19d0269c8a87c71dda3512",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 10,
-      "title": "fix: use documented discord.dog embed parameters",
-      "state": "merged",
-      "date": "2026-09-08T06:41:59Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/10",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "c7af6316d5b512ac5af7f0f495ed8e1dc72a953f",
-      "message": "fix: use documented discord.dog embed parameters",
-      "author": "nohint404",
-      "date": "2026-09-08T06:39:45Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/c7af6316d5b512ac5af7f0f495ed8e1dc72a953f",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 9,
-      "title": "fix: make personal Discord presence render reliably",
-      "state": "merged",
-      "date": "2026-09-08T06:36:29Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/9",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "c88187c9c99a12ef0b327c73726879a2e020745f",
-      "message": "style: simplify Discord scene around live profile embed",
-      "author": "nohint404",
-      "date": "2026-09-08T06:34:44Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/c88187c9c99a12ef0b327c73726879a2e020745f",
+      "url": "https://github.com/psymariux/spotatui/commit/f99254bca451e2e8fd19d0269c8a87c71dda3512",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "eb3d3cede470112363be5e1c7ab857e2015a374b",
-      "message": "fix: use discord.dog live profile embed for personal presence",
+      "repository": "vs-notrack",
+      "sha": "b107464c01198e3f136e7c8a930af0b20972a9b8",
+      "message": "Disable Copilot extensions directly and block built-in reinstall\n\n- Persistent disable via state.vscdb (gear-menu Disable equivalent)\n- --disable-extension flags in launchers/shortcuts\n- Block builtInExtensionsEnabledWithAutoUpdates via product.json override\n- Handle built-in copilot-chat uninstall refusal with clear message\n- Try all CLIs (code, code-insiders, codium), wait for VSCode exit",
       "author": "nohint404",
-      "date": "2026-09-08T06:34:10Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/eb3d3cede470112363be5e1c7ab857e2015a374b",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 8,
-      "title": "feat: replace PsyStream bot activity with personal Discord presence",
-      "state": "merged",
-      "date": "2026-09-08T06:28:48Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/8",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "acd7c146fcadf959a7b17b560e63b54c3c76ec51",
-      "message": "fix: tighten Discord presence client typing",
-      "author": "nohint404",
-      "date": "2026-09-08T06:26:34Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/acd7c146fcadf959a7b17b560e63b54c3c76ec51",
+      "date": "2026-09-07T17:08:43Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/b107464c01198e3f136e7c8a930af0b20972a9b8",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "e06b79d33c36bf23100f84c51363ec8de85e72a1",
-      "message": "style: load personal Discord presence styles",
+      "repository": "vs-notrack",
+      "sha": "9a68e5486491b5b5cab0584085b897bbd7cf048c",
+      "message": "chore: finalize main task changes",
       "author": "nohint404",
-      "date": "2026-09-08T06:25:15Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/e06b79d33c36bf23100f84c51363ec8de85e72a1",
+      "date": "2026-09-07T16:52:28Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/9a68e5486491b5b5cab0584085b897bbd7cf048c",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "a8e2254debd696535be0da85317e1ce0c2cd833e",
-      "message": "feat: place Discord activity as a separate homepage scene",
+      "repository": "vs-notrack",
+      "sha": "2280940c35cc2d5b654623d89d2cba6852ab3ce8",
+      "message": "chore: finalize main task changes",
       "author": "nohint404",
-      "date": "2026-09-08T06:24:58Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/a8e2254debd696535be0da85317e1ce0c2cd833e",
+      "date": "2026-09-07T16:44:21Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/2280940c35cc2d5b654623d89d2cba6852ab3ce8",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "5a6576659d21495514d146fea71b119a6eb2b52b",
-      "message": "feat: add Discord account id to profile data",
+      "repository": "vs-notrack",
+      "sha": "05f55ec84ffc297bd448055516adf8b40077f748",
+      "message": "pro menu styling with tty-gated colors",
       "author": "nohint404",
-      "date": "2026-09-08T06:24:44Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/5a6576659d21495514d146fea71b119a6eb2b52b",
+      "date": "2026-09-07T04:44:27Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/05f55ec84ffc297bd448055516adf8b40077f748",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "e6b8a6cb0036d038cbd900eb62d10cca90ebdc27",
-      "message": "style: add personal Discord presence scene",
+      "repository": "vs-notrack",
+      "sha": "4f7170caef7ffe3a77fdecf6eb3e704f1f6325da",
+      "message": "pure ASCII scripts plus BOM for legacy parser compatibility",
       "author": "nohint404",
-      "date": "2026-09-08T06:24:27Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/e6b8a6cb0036d038cbd900eb62d10cca90ebdc27",
+      "date": "2026-09-07T04:23:10Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/4f7170caef7ffe3a77fdecf6eb3e704f1f6325da",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "09f794c2d512ea9a79c491562a96c06012c063e8",
-      "message": "feat: add personal Discord activity scene",
+      "repository": "vs-notrack",
+      "sha": "113295ebd54c7841305347bfa8dd54e60ba0ae59",
+      "message": "probe clean-cut prefixes of file head",
       "author": "nohint404",
-      "date": "2026-09-08T06:23:39Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/09f794c2d512ea9a79c491562a96c06012c063e8",
+      "date": "2026-09-07T04:21:14Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/113295ebd54c7841305347bfa8dd54e60ba0ae59",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "3a312c264b5c170e52369ffbbf9d23059e8085ed",
-      "message": "feat: add live personal Discord presence component",
+      "repository": "vs-notrack",
+      "sha": "eb7d2a79d89c4caa77166683dc63a23178b65bac",
+      "message": "probe suffix segments for silent quote flip",
       "author": "nohint404",
-      "date": "2026-09-08T06:23:28Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/3a312c264b5c170e52369ffbbf9d23059e8085ed",
+      "date": "2026-09-07T04:19:12Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/eb7d2a79d89c4caa77166683dc63a23178b65bac",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "178aaee376e4865bfd58957efdfcb7a7c1506df4",
-      "message": "fix: remove PsyStream Discord activity styles",
+      "repository": "vs-notrack",
+      "sha": "01d61c830a8802536f8ccdcca7bb0bdcfd67fcb6",
+      "message": "probe by excising whole blocks",
       "author": "nohint404",
-      "date": "2026-09-08T06:19:54Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/178aaee376e4865bfd58957efdfcb7a7c1506df4",
+      "date": "2026-09-07T04:17:41Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/01d61c830a8802536f8ccdcca7bb0bdcfd67fcb6",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "a14add48f2e0853c8d1f07bcd516cf96f446e128",
-      "message": "fix: remove PsyStream bot Discord activity section",
+      "repository": "vs-notrack",
+      "sha": "2d821cb3378df790d3493e4cf1cd248afe1175b5",
+      "message": "probe suspicious line-248 constructs in isolation",
       "author": "nohint404",
-      "date": "2026-09-08T06:19:40Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/a14add48f2e0853c8d1f07bcd516cf96f446e128",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 7,
-      "title": "feat: refine PsyStream detail copy",
-      "state": "merged",
-      "date": "2026-09-08T06:15:22Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/7",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "8b00b9be98cdded7e80c57da113e245e045c7972",
-      "message": "feat: add dedicated Discord Activity section to PsyStream",
-      "author": "nohint404",
-      "date": "2026-09-08T06:14:01Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/8b00b9be98cdded7e80c57da113e245e045c7972",
+      "date": "2026-09-07T04:15:52Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/2d821cb3378df790d3493e4cf1cd248afe1175b5",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "b1a42ee002619e897a3febd7e95c4da07574edff",
-      "message": "feat: add Discord Activity styling for PsyStream case study",
+      "repository": "vs-notrack",
+      "sha": "7c69c958c269d89e4f6f462c90e3d271cb452838",
+      "message": "probe prefixes with positions to locate string desync",
       "author": "nohint404",
-      "date": "2026-09-08T06:13:38Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/b1a42ee002619e897a3febd7e95c4da07574edff",
+      "date": "2026-09-07T04:14:18Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/7c69c958c269d89e4f6f462c90e3d271cb452838",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "6951544c6ae1ac649921c5ccda3fc966c73b421f",
-      "message": "copy: describe PsyStream streaming experience",
+      "repository": "vs-notrack",
+      "sha": "e60eb9d47dec6468abe7c2842e6488ee98a57de2",
+      "message": "probe before syntax check so it always runs",
       "author": "nohint404",
-      "date": "2026-09-08T06:07:22Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/6951544c6ae1ac649921c5ccda3fc966c73b421f",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 6,
-      "title": "feat: feature PsyStream first with logo and private project page",
-      "state": "merged",
-      "date": "2026-09-08T05:55:56Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/6",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "4a2e7acefe7dda9f1aef5cba86c378f8f8aa8197",
-      "message": "fix: sync browser theme color with refined dark palette",
-      "author": "nohint404",
-      "date": "2026-09-08T05:53:36Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/4a2e7acefe7dda9f1aef5cba86c378f8f8aa8197",
+      "date": "2026-09-07T04:11:27Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/e60eb9d47dec6468abe7c2842e6488ee98a57de2",
       "branch": "main"
     },
     {
       "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "2e9df0d9d9721dce2297ad69797bf84da26a4cb3",
-      "message": "style: load featured PsyStream and refined dark theme",
+      "repository": "vs-notrack",
+      "sha": "00af927bbdf7043fa025e8f92c97275f41f2b83d",
+      "message": "CI probe step for 5.1 parser diagnostics",
       "author": "nohint404",
-      "date": "2026-09-08T05:53:15Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/2e9df0d9d9721dce2297ad69797bf84da26a4cb3",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "35f5597cdb1ea446f282d8af85be7b49945a2ac3",
-      "message": "feat: add PsyStream private-codebase detail page",
-      "author": "nohint404",
-      "date": "2026-09-08T05:53:03Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/35f5597cdb1ea446f282d8af85be7b49945a2ac3",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "c449badf5e8fff8150474e2ef071d3498b73780f",
-      "message": "style: feature PsyStream and refine dark palette",
-      "author": "nohint404",
-      "date": "2026-09-08T05:52:46Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/c449badf5e8fff8150474e2ef071d3498b73780f",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "9f1be091c181479a79cb73805bd8c42a230df125",
-      "message": "feat: feature PsyStream first in selected work",
-      "author": "nohint404",
-      "date": "2026-09-08T05:51:35Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/9f1be091c181479a79cb73805bd8c42a230df125",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "f0a18fd0049523618c30c9ac67c5d2a81e113584",
-      "message": "feat: add PsyStream brand logo",
-      "author": "nohint404",
-      "date": "2026-09-08T05:50:39Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/f0a18fd0049523618c30c9ac67c5d2a81e113584",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 5,
-      "title": "feat: add stream.psymariux.dev as a live portfolio surface",
-      "state": "merged",
-      "date": "2026-09-08T05:31:40Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/5",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "60203a88d5432c0a342ba8b8b3001753e941bc08",
-      "message": "copy: clarify live stream surface ownership",
-      "author": "nohint404",
-      "date": "2026-09-08T05:30:43Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/60203a88d5432c0a342ba8b8b3001753e941bc08",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "dda33d11b3b78fd63f17608cde59b7affb2dae85",
-      "message": "style: theme the live stream surface",
-      "author": "nohint404",
-      "date": "2026-09-08T05:30:23Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/dda33d11b3b78fd63f17608cde59b7affb2dae85",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "f01c9a959c5a97b224ce93697118be9da7ca7982",
-      "message": "feat: add stream.psymariux.dev as a live surface",
-      "author": "nohint404",
-      "date": "2026-09-08T05:29:49Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/f01c9a959c5a97b224ce93697118be9da7ca7982",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 4,
-      "title": "feat: add theme modes and live stream surface",
-      "state": "merged",
-      "date": "2026-09-08T05:24:11Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/4",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "856b00c0fc2d6df8c1854a18b7eae6cc306bf118",
-      "message": "feat: add cohesive blue dark theme",
-      "author": "nohint404",
-      "date": "2026-09-08T05:23:14Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/856b00c0fc2d6df8c1854a18b7eae6cc306bf118",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "2b4e187fa616ba52a127c7210003790563300d7d",
-      "message": "feat: resolve saved or system theme before first paint",
-      "author": "nohint404",
-      "date": "2026-09-08T05:22:50Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/2b4e187fa616ba52a127c7210003790563300d7d",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "258bb85cdb2400eaf3d6463d717b1fe79da69fd9",
-      "message": "feat: expose theme picker in global navigation",
-      "author": "nohint404",
-      "date": "2026-09-08T05:22:37Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/258bb85cdb2400eaf3d6463d717b1fe79da69fd9",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "bbe439f5d0d34e544373a6aa199fbcbcba84f7d1",
-      "message": "feat: add light dark system theme picker",
-      "author": "nohint404",
-      "date": "2026-09-08T05:22:28Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/bbe439f5d0d34e544373a6aa199fbcbcba84f7d1",
-      "branch": "main"
-    },
-    {
-      "kind": "pr",
-      "repository": "nohint-portfolio",
-      "number": 3,
-      "title": "design: unify portfolio around a light sky-blue palette",
-      "state": "merged",
-      "date": "2026-09-08T05:17:45Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/pull/3",
-      "author": "nohint404"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "b087b4402ce50799e74c21899ab82811f8d3dbd7",
-      "message": "design: align browser chrome with sky palette",
-      "author": "nohint404",
-      "date": "2026-09-08T05:16:48Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/b087b4402ce50799e74c21899ab82811f8d3dbd7",
-      "branch": "main"
-    },
-    {
-      "kind": "commit",
-      "repository": "nohint-portfolio",
-      "sha": "9ba2319eb6e8ede65c95fee811a36f1b6c84a540",
-      "message": "design: unify palette around light Nintendo-inspired blues",
-      "author": "nohint404",
-      "date": "2026-09-08T05:16:38Z",
-      "url": "https://github.com/nohint404/nohint-portfolio/commit/9ba2319eb6e8ede65c95fee811a36f1b6c84a540",
+      "date": "2026-09-07T04:09:29Z",
+      "url": "https://github.com/psymariux/vs-notrack/commit/00af927bbdf7043fa025e8f92c97275f41f2b83d",
       "branch": "main"
     }
   ],
@@ -1751,7 +1343,7 @@
       },
       {
         "name": "TypeScript",
-        "bytes": 2014164
+        "bytes": 2285656
       },
       {
         "name": "HTML",
@@ -1759,19 +1351,11 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 125145
+        "bytes": 128841
       },
       {
         "name": "SCSS",
         "bytes": 71501
-      },
-      {
-        "name": "CSS",
-        "bytes": 57449
-      },
-      {
-        "name": "Astro",
-        "bytes": 28366
       },
       {
         "name": "Java",
@@ -1782,8 +1366,8 @@
         "bytes": 24089
       },
       {
-        "name": "Svelte",
-        "bytes": 22175
+        "name": "Python",
+        "bytes": 20391
       },
       {
         "name": "PowerShell",
@@ -1794,8 +1378,8 @@
         "bytes": 9848
       },
       {
-        "name": "Python",
-        "bytes": 6823
+        "name": "CSS",
+        "bytes": 9519
       },
       {
         "name": "Nix",
@@ -1824,15 +1408,15 @@
     ],
     "recentlyActive": [
       "spotatui",
-      "nohint-portfolio",
+      "psy-portfolio",
       "vs-notrack"
     ]
   },
-  "fetchedAt": "2026-09-30T21:00:04.969Z",
+  "fetchedAt": "2026-10-03T13:02:22.754Z",
   "status": "live",
   "warnings": [],
   "profile": {
     "bio": "People live their lives bound by what they accept as correct and true. That's how they define \"reality\". But what does it mean to be \"correct\" or \"true\"?",
-    "url": "https://github.com/nohint404"
+    "url": "https://github.com/psymariux"
   }
 }
