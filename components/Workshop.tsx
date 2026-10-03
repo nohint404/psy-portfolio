@@ -143,6 +143,17 @@ export default function Workshop({ data: initialData }: { data: PortfolioData })
     sealsBuffer.current ||= fetch("/audio/seals.mp3").then(response => { if (!response.ok) throw new Error("Seals audio unavailable"); return response.arrayBuffer(); }).then(bytes => context.decodeAudioData(bytes)).catch(error => { sealsBuffer.current = null; throw error; });
     return sealsBuffer.current;
   }, []);
+  useEffect(() => {
+    let unlocked = false;
+    const unlock = (event: Event) => {
+      if (!event.isTrusted || unlocked || (event instanceof KeyboardEvent && (event.repeat || event.key === "Escape"))) return;
+      unlocked = true; audioEnabled.current = true; setSound(true);
+      try { resumeAudio(audio); } catch { /* Sound is optional if the browser cannot create a context. */ }
+      window.removeEventListener("click", unlock); window.removeEventListener("keydown", unlock);
+    };
+    window.addEventListener("click", unlock); window.addEventListener("keydown", unlock);
+    return () => { window.removeEventListener("click", unlock); window.removeEventListener("keydown", unlock); };
+  }, []);
   function toggleSound() {
     audioEnabled.current = !sound; setSound(!sound);
     if (!audioEnabled.current) stopRitual();
