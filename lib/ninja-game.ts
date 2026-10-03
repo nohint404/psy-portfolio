@@ -3,22 +3,24 @@ import { CHUNK_SIZE, DEFAULT_SEED, pointKey, villageTile, generatedTile, groundT
 // Legacy dimensions describe the starting village, never the world boundary.
 export const WORLD_W = 40, WORLD_H = 32, SAVE_KEY = "psymariux:ninja-sandbox:v1";
 export type WorldState = { seed: number; changes: Record<string, number>; explored: Record<string, true>; foes: Record<string, { x: number; y: number; hp: number }> };
-export const tileNames = ["grass", "path", "water", "tree", "rock", "wood", "stone", "bridge", "flowers", "sand", "house", "ruin", "garden", "fence", "lantern", "workbench", "campfire", "crop", "supply_cache", "snow", "ore", "soil", "seedling"] as const;
+export const tileNames = ["grass", "path", "water", "tree", "rock", "wood", "stone", "bridge", "flowers", "sand", "house", "ruin", "garden", "fence", "lantern", "workbench", "campfire", "crop", "supply_cache", "snow", "ore", "soil", "seedling", "trail", "brick"] as const;
 export type Facing = [number, number];
 export type EnemyKind = "rogue" | "archer" | "guard" | "warden";
 export type Ninja = { x: number; y: number; hp: number; kind: EnemyKind; id?: string };
 export type Jutsu = "kunai" | "fire" | "wind" | "lightning";
-export type Material = "wood" | "stone" | "bridge" | "fence" | "lantern" | "campfire" | "garden";
-export const materials: Material[] = ["wood", "stone", "bridge", "fence", "lantern", "campfire", "garden"];
-export type Inventory = { herb: number; ore: number; medicine: number; bridge: number; fence: number; lantern: number; campfire: number; garden: number };
+export type Material = "wood" | "stone" | "bridge" | "fence" | "lantern" | "campfire" | "garden" | "trail" | "brick";
+export const materials: Material[] = ["wood", "stone", "trail", "brick", "bridge", "fence", "lantern", "campfire", "garden"];
+export type Inventory = { herb: number; ore: number; medicine: number; bridge: number; fence: number; lantern: number; campfire: number; garden: number; trail: number; brick: number };
 export type Quest = "supplies" | "herbalist" | "warden";
+export type Mission = "trailblazer" | "homesteader" | "vanguard";
+export const missions: readonly Mission[] = ["trailblazer", "homesteader", "vanguard"];
 export type Projectile = { x: number; y: number; dx: number; dy: number; left: number; damage: number; hostile: boolean; kind: Jutsu };
 export type GameState = {
   version: 3; savedAt: number; world: WorldState; roamers: WildEnemy[]; spawn: { x: number; y: number }; crops: Record<string, number>;
   elapsed: number; hurtUntil: number; totals: { built: number; harvested: number; defeated: number };
   tiles: number[]; x: number; y: number; facing: Facing;
   hp: number; chakra: number; wood: number; stone: number; scrolls: number[]; enemies: Ninja[];
-  inventory: Inventory; quests: Quest[]; upgrades: ("kunai" | "armor")[]; projectiles: Projectile[];
+  inventory: Inventory; quests: Quest[]; missions: Mission[]; upgrades: ("kunai" | "armor")[]; projectiles: Projectile[];
 };
 export const camp = { x: 10, y: 16 };
 export const shrines = [{ x: 7, y: 7 }, { x: 32, y: 8 }, { x: 30, y: 25 }];
@@ -28,7 +30,7 @@ export const npcs = [
   { id: "herbalist", name: "Aoi", role: "forest ranger", x: 7, y: 10, color: "#62b99b" },
 ] as const;
 export const houses = [{ x: 3, y: 12, w: 4, h: 3 }, { x: 3, y: 20, w: 4, h: 3 }, { x: 12, y: 21, w: 4, h: 3 }];
-export const solid = (tile: number) => [2, 3, 4, 5, 6, 10, 11, 13, 14, 15, 18, 20].includes(tile);
+export const solid = (tile: number) => [2, 3, 4, 5, 6, 10, 11, 13, 14, 15, 18, 20, 24].includes(tile);
 const inside = (x: number, y: number) => x >= 1 && x < WORLD_W - 1 && y >= 1 && y < WORLD_H - 1;
 const distance = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const coordinate = (v: number) => Number.isSafeInteger(v) && Math.abs(v) < Number.MAX_SAFE_INTEGER - 100;
@@ -78,8 +80,10 @@ export const recipes = [
   { id: "lantern", name: "Stone lantern", cost: { stone: 2, ore: 1 }, amount: 1, note: "Light up a new camp." },
   { id: "kunai", name: "Tempered kunai", cost: { ore: 3, stone: 3 }, amount: 1, note: "Permanent +1 kunai damage." },
   { id: "armor", name: "Shinobi armor", cost: { wood: 4, stone: 4 }, amount: 1, note: "Permanent +2 maximum life." },
-  { id: "campfire", name: "Trail campfire", cost: { wood: 3, stone: 2 }, amount: 1, note: "Place, then E to rest and set your respawn." },
-  { id: "garden", name: "Herb seeds", cost: { herb: 1, wood: 1 }, amount: 3, note: "Plant with Q. Grow for 45 active seconds; harvest with E." },
+  { id: "campfire", name: "Trail campfire", cost: { wood: 3, stone: 2 }, amount: 1, note: "Place, then F to rest and set your respawn." },
+  { id: "garden", name: "Herb seeds", cost: { herb: 1, wood: 1 }, amount: 3, note: "Plant with Q. Grow for 45 active seconds; harvest with F." },
+  { id: "trail", name: "Trail pavers", cost: { stone: 1, wood: 1 }, amount: 4, note: "Lay readable paths across open ground." },
+  { id: "brick", name: "Kiln bricks", cost: { stone: 3, ore: 1 }, amount: 2, note: "Build sturdy outlined walls." },
 ] as const;
 export type RecipeId = typeof recipes[number]["id"];
 const stock = (s: GameState, resource: string) => resource === "wood" ? s.wood : resource === "stone" ? s.stone : s.inventory[resource as keyof Inventory];
@@ -125,7 +129,7 @@ export function createGame(seed = DEFAULT_SEED): GameState {
     { x: 34, y: 15, hp: 3, kind: "archer" }, { x: 34, y: 26, hp: 18, kind: "warden" },
   ];
   for (const e of enemies) tiles[e.y * WORLD_W + e.x] = e.x > 22 && e.y > 18 ? 9 : 0;
-  return { version: 3, savedAt: 0, world: { seed: seed >>> 0, changes: {}, explored: { "0,0": true, "1,0": true, "0,1": true, "1,1": true }, foes: {} }, roamers: [], spawn: { ...camp }, crops: {}, elapsed: 0, hurtUntil: 0, totals: { built: 0, harvested: 0, defeated: 0 }, tiles, x: camp.x, y: camp.y, facing: [0, 1], hp: 6, chakra: 100, wood: 8, stone: 4, scrolls: [], enemies, inventory: { herb: 0, ore: 0, medicine: 1, bridge: 0, fence: 0, lantern: 0, garden: 2, campfire: 1 }, quests: [], upgrades: [], projectiles: [] };
+  return { version: 3, savedAt: 0, world: { seed: seed >>> 0, changes: {}, explored: { "0,0": true, "1,0": true, "0,1": true, "1,1": true }, foes: {} }, roamers: [], spawn: { ...camp }, crops: {}, elapsed: 0, hurtUntil: 0, totals: { built: 0, harvested: 0, defeated: 0 }, tiles, x: camp.x, y: camp.y, facing: [0, 1], hp: 6, chakra: 100, wood: 8, stone: 4, scrolls: [], enemies, inventory: { herb: 0, ore: 0, medicine: 1, bridge: 0, fence: 0, lantern: 0, garden: 2, campfire: 1, trail: 0, brick: 0 }, quests: [], missions: [], upgrades: [], projectiles: [] };
 }
 export function readSave(value: string | null, strict = false): GameState {
   try {
@@ -133,7 +137,7 @@ export function readSave(value: string | null, strict = false): GameState {
     const integer = (v: unknown, min: number, max: number) => typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
     const points = (v: { x: number; y: number }) => v && (s?.version === 3 ? coordinate(v.x) && coordinate(v.y) : integer(v.x, 1, WORLD_W - 2) && integer(v.y, 1, WORLD_H - 2));
     const unique = (v: unknown, allowed: readonly unknown[]) => Array.isArray(v) && v.length <= allowed.length && new Set(v).size === v.length && v.every(i => allowed.includes(i));
-    if (!s || ![1, 2, 3].includes(s.version) || !Array.isArray(s.tiles) || s.tiles.length !== WORLD_W * WORLD_H || !s.tiles.every((t: unknown) => integer(t, 0, s.version === 1 ? 6 : s.version === 2 ? 15 : 22))) throw new Error();
+    if (!s || ![1, 2, 3].includes(s.version) || !Array.isArray(s.tiles) || s.tiles.length !== WORLD_W * WORLD_H || !s.tiles.every((t: unknown) => integer(t, 0, s.version === 1 ? 6 : s.version === 2 ? 15 : 24))) throw new Error();
     if (!points(s) || solid(tileAt(s, s.x, s.y)) || !Array.isArray(s.facing) || s.facing.length !== 2 || !s.facing.every((v: unknown) => integer(v, -1, 1)) || Math.abs(s.facing[0]) + Math.abs(s.facing[1]) !== 1) throw new Error();
     if (!Number.isFinite(s.chakra) || s.chakra < 0 || s.chakra > 100 || !integer(s.wood, 0, 999) || !integer(s.stone, 0, 999) || !unique(s.scrolls, [0, 1, 2])) throw new Error();
     const base = createGame();
@@ -146,7 +150,7 @@ export function readSave(value: string | null, strict = false): GameState {
         const cx = Number(match[1]), cy = Number(match[2]); if (!coordinate(cx * CHUNK_SIZE + 12) || !coordinate(cy * CHUNK_SIZE + 12)) return undefined;
         return worldChunk(s.world.seed, cx, cy).enemies.find(e => e.id === id);
       };
-      if (!s.world || !integer(s.world.seed, 0, 4294967295) || !record(s.world.changes, (k, v) => keyPoint(k) && !villageTile(...k.split(",").map(Number) as [number, number]) && integer(v, 0, 22)) || !record(s.world.explored, (k, v) => keyPoint(k) && v === true)) throw new Error();
+      if (!s.world || !integer(s.world.seed, 0, 4294967295) || !record(s.world.changes, (k, v) => keyPoint(k) && !villageTile(...k.split(",").map(Number) as [number, number]) && integer(v, 0, 24)) || !record(s.world.explored, (k, v) => keyPoint(k) && v === true)) throw new Error();
       if (!Number.isFinite(s.elapsed) || s.elapsed < 0 || s.elapsed > Number.MAX_SAFE_INTEGER || !Number.isFinite(s.hurtUntil) || s.hurtUntil < 0 || s.hurtUntil > s.elapsed + 2 || !points(s.spawn) || (distance(s.spawn, camp) !== 0 && tileAt(s, s.spawn.x, s.spawn.y) !== 16)) throw new Error();
       if (!record(s.crops, (k, ready) => keyPoint(k) && typeof ready === "number" && Number.isFinite(ready) && ready >= 0 && ready <= s.elapsed + 45 && (villageTile(...k.split(",").map(Number) as [number, number]) ? s.tiles[Number(k.split(",")[1]) * WORLD_W + Number(k.split(",")[0])] : s.world.changes[k]) === 22)) throw new Error();
       if (!s.tiles.every((tile: number, i: number) => tile !== 22 || Object.hasOwn(s.crops, pointKey(i % WORLD_W, Math.floor(i / WORLD_W)))) || !Object.entries(s.world.changes).every(([key, tile]) => tile !== 22 || Object.hasOwn(s.crops, key))) throw new Error();
@@ -167,29 +171,38 @@ export function readSave(value: string | null, strict = false): GameState {
       }
       return migrated;
     }
-    if (!s.inventory || !Object.keys(base.inventory).filter(k => s.version === 3 || !["garden", "campfire"].includes(k)).every(k => integer(s.inventory[k], 0, 999)) || !unique(s.quests, ["supplies", "herbalist", "warden"]) || !unique(s.upgrades, ["kunai", "armor"]) || !integer(s.hp, 1, s.upgrades.includes("armor") ? 8 : 6)) throw new Error();
+    const requiredInventory = Object.keys(base.inventory).filter(k => !["trail", "brick"].includes(k) && (s.version === 3 || !["garden", "campfire"].includes(k)));
+    if (!s.inventory || !requiredInventory.every(k => integer(s.inventory[k], 0, 999)) || !["trail", "brick"].every(k => s.inventory[k] === undefined || integer(s.inventory[k], 0, 999)) || !unique(s.quests, ["supplies", "herbalist", "warden"]) || (s.missions !== undefined && !unique(s.missions, missions)) || !unique(s.upgrades, ["kunai", "armor"]) || !integer(s.hp, 1, s.upgrades.includes("armor") ? 8 : 6)) throw new Error();
     if (!Array.isArray(s.enemies) || s.enemies.length < 4 || s.enemies.length > 8 || !s.enemies.every((e: Ninja) => points(e) && ["rogue", "archer", "guard", "warden"].includes(e.kind) && integer(e.hp, 0, maxEnemyHp(e.kind)) && (!e.hp || !solid(tileAt(s, e.x, e.y))))) throw new Error();
     if (s.enemies.filter((e: Ninja) => e.kind === "warden").length > 1 || !Array.isArray(s.projectiles) || s.projectiles.length > 64 || !s.projectiles.every((p: Projectile) => points(p) && integer(p.dx, -1, 1) && integer(p.dy, -1, 1) && Math.abs(p.dx) + Math.abs(p.dy) >= 1 && integer(p.left, 1, 10) && integer(p.damage, 1, 4) && typeof p.hostile === "boolean" && ["kunai", "fire", "wind", "lightning"].includes(p.kind))) throw new Error();
-    const frontier = s.version === 3 ? { savedAt: s.savedAt ?? 0, world: { seed: s.world.seed, changes: { ...s.world.changes }, explored: { ...s.world.explored }, foes: Object.fromEntries(Object.entries(s.world.foes).map(([id, value]) => { const e = value as Ninja; return [id, { x: e.x, y: e.y, hp: e.hp }]; })) }, roamers: s.roamers.map((e: WildEnemy) => ({ id: e.id, x: e.x, y: e.y, hp: e.hp, kind: e.kind })), spawn: { x: s.spawn.x, y: s.spawn.y }, crops: { ...s.crops }, elapsed: s.elapsed, hurtUntil: s.hurtUntil, totals: { built: s.totals.built, harvested: s.totals.harvested, defeated: s.totals.defeated } } : {};
+    const frontier = s.version === 3 ? { savedAt: s.savedAt ?? 0, world: { seed: s.world.seed, changes: { ...s.world.changes }, explored: { ...s.world.explored }, foes: Object.fromEntries(Object.entries(s.world.foes).map(([id, value]) => { const e = value as Ninja; return [id, { x: e.x, y: e.y, hp: e.hp }]; })) }, roamers: s.roamers.map((e: WildEnemy) => ({ id: e.id, x: e.x, y: e.y, hp: e.hp, kind: e.kind })), spawn: { x: s.spawn.x, y: s.spawn.y }, crops: { ...s.crops }, elapsed: s.elapsed, hurtUntil: s.hurtUntil, totals: { built: s.totals.built, harvested: s.totals.harvested, defeated: s.totals.defeated }, missions: s.missions ? [...s.missions] : [] } : {};
     return { ...base, ...frontier, version: 3, tiles: s.tiles, x: s.x, y: s.y, facing: s.facing, hp: s.hp, chakra: s.chakra, wood: s.wood, stone: s.stone, scrolls: s.scrolls, enemies: s.enemies.map((e: Ninja) => ({ x: e.x, y: e.y, hp: e.hp, kind: e.kind })), inventory: Object.fromEntries(Object.keys(base.inventory).map(k => [k, s.inventory[k] ?? base.inventory[k as keyof Inventory]])) as Inventory, quests: s.quests, upgrades: s.upgrades, projectiles: s.projectiles.map((p: Projectile) => ({ x: p.x, y: p.y, dx: p.dx, dy: p.dy, left: p.left, damage: p.damage, hostile: p.hostile, kind: p.kind })) };
   } catch { if (strict) throw new Error("Invalid world save. Your current world was not changed."); return createGame(); }
+}
+function canStand(s: GameState, x: number, y: number) {
+  return coordinate(x) && coordinate(y) && !solid(tileAt(s, x, y)) && !npcs.some(n => n.x === x && n.y === y) && !allEnemies(s).some(e => e.hp > 0 && e.x === x && e.y === y);
 }
 export function movePlayer(s: GameState, dx: number, dy: number) {
   if (!Number.isInteger(dx) || !Number.isInteger(dy) || Math.abs(dx) + Math.abs(dy) !== 1) return false;
   s.facing = [dx, dy]; const x = s.x + dx, y = s.y + dy;
-  if (!coordinate(x) || !coordinate(y) || solid(tileAt(s, x, y)) || npcs.some(n => n.x === x && n.y === y) || allEnemies(s).some(e => e.hp > 0 && e.x === x && e.y === y)) return false;
+  if (!canStand(s, x, y)) return false;
   s.x = x; s.y = y; streamWorld(s); return true;
+}
+export function jump(s: GameState) {
+  const [dx, dy] = s.facing, middle = { x: s.x + dx, y: s.y + dy }, landing = { x: s.x + dx * 2, y: s.y + dy * 2 };
+  if (!canStand(s, middle.x, middle.y) || !canStand(s, landing.x, landing.y)) return "Jump blocked. Trees, stone, buildings and enemies cannot be cleared.";
+  s.x = landing.x; s.y = landing.y; streamWorld(s); return "Jumped two tiles.";
 }
 export function collectScroll(s: GameState) {
   const i = shrines.findIndex(p => distance(p, s) <= 1);
   if (i < 0 || s.scrolls.includes(i)) return "Find the three scroll shrines. Check your journal map.";
   s.scrolls.push(i); s.hp = maxHp(s); s.chakra = 100;
-  return s.scrolls.length === 3 ? "Mangekyo awakened! The Moonfall Warden stirs. Space freezes enemies; L dashes." : `Scroll ${s.scrolls.length}/3 recovered. ${s.scrolls.length === 1 ? "Wind" : "Lightning"} style unlocked. Life and chakra restored.`;
+  return s.scrolls.length === 3 ? "Mangekyo awakened! The Moonfall Warden stirs. G freezes enemies; L dashes." : `Scroll ${s.scrolls.length}/3 recovered. ${s.scrolls.length === 1 ? "Wind" : "Lightning"} style unlocked. Life and chakra restored.`;
 }
 export function talk(s: GameState) {
   const n = npcs.find(n => distance(n, s) <= 1);
   if (!n) return "";
-  if (n.id === "builder") return "Ren: Open Bag / recipes with I. Gather ore from grey rocks and ruin walls. Bridges cross water; medicine restores life. Temper your kunai before the Warden.";
+  if (n.id === "builder") return "Ren: Open Inventory / recipes with E or I. Gather ore from grey rocks and ruin walls. Bridges cross water; medicine restores life. Temper your kunai before the Warden.";
   if (n.id === "herbalist") {
     if (s.quests.includes("herbalist")) return "Aoi: The grove is healthy again. Your dash now costs only 6 chakra. Flowers and village gardens provide herbs.";
     if (s.inventory.herb < 3) return `Aoi: Bring me 3 herbs from the flowers or gardens (${s.inventory.herb}/3). I’ll teach you an efficient dash. The first scroll is northwest, at 7,7.`;
@@ -202,13 +215,14 @@ export function talk(s: GameState) {
     return "Kiyo: You lifted the seal! +3 lanterns. The village is safe. Keep exploring and building; this dream is yours.";
   }
   if (s.quests.includes("supplies")) return s.quests.includes("warden") ? "Kiyo: Our lanterns burn bright again. You’re always welcome here." : "Kiyo: Recover the three scrolls, then defeat the Warden in the southeast ruins. Return here for your reward. Camp restores your life.";
-  if (s.wood < 3 || s.stone < 2) return `Kiyo: The village needs 3 wood and 2 stone (${s.wood}/3 wood, ${s.stone}/2 stone). Mine with E. I’ll trade you ore and medicine.`;
+  if (s.wood < 3 || s.stone < 2) return `Kiyo: The village needs 3 wood and 2 stone (${s.wood}/3 wood, ${s.stone}/2 stone). Gather with F. I’ll trade you ore and medicine.`;
   s.wood -= 3; s.stone -= 2; s.quests.push("supplies"); add(s, "ore", 2); add(s, "medicine", 1);
   return "Kiyo: Village quest complete! +2 ore, +1 medicine. Visit Aoi in the Jade forest and Ren by the workbench.";
 }
 export function mine(s: GameState) {
   const underfoot = tileAt(s, s.x, s.y);
   if (underfoot === 22) return `Growing herbs: ${Math.max(0, Math.ceil(s.crops[pointKey(s.x, s.y)] - s.elapsed))} active seconds left.`;
+  if (underfoot === 23) { add(s, "trail", 1); setTile(s, s.x, s.y, villageTile(s.x, s.y) ? 0 : groundTile(s.world.seed, s.x, s.y)); s.totals.harvested++; return "trail recovered."; }
   if ([8, 12, 17].includes(underfoot)) {
     add(s, "herb", underfoot === 8 ? 1 : 2); if (underfoot === 17) add(s, "garden", 1);
     setTile(s, s.x, s.y, underfoot === 17 ? 21 : villageTile(s.x, s.y) ? 0 : groundTile(s.world.seed, s.x, s.y)); s.totals.harvested++;
@@ -225,8 +239,8 @@ export function mine(s: GameState) {
   else if (tile === 20) { add(s, "stone", 1); add(s, "ore", 2); message = "+1 stone, +2 ore"; }
   else if (tile === 4 || tile === 6 || tile === 11) { add(s, "stone", 1); if (tile !== 6 && (tile === 11 || (x + y) % 2 === 0)) { add(s, "ore", 1); message = "+1 stone, +1 ore"; } else message = "+1 stone"; }
   else if ([8, 12, 17].includes(tile)) { add(s, "herb", tile === 8 ? 1 : 2); if (tile === 17) add(s, "garden", 1); message = tile === 8 ? "+1 herb" : tile === 17 ? "+2 herbs, +1 seed" : "+2 herbs"; }
-  else if ([7, 13, 14, 16].includes(tile)) { const item = tile === 7 ? "bridge" : tile === 13 ? "fence" : tile === 16 ? "campfire" : "lantern"; add(s, item, 1); message = `${item} recovered.`; }
-  else return "E gathers nearby trees, rocks and herbs. Q builds; I opens recipes and the map.";
+  else if ([7, 13, 14, 16, 23, 24].includes(tile)) { const item = tile === 7 ? "bridge" : tile === 13 ? "fence" : tile === 16 ? "campfire" : tile === 23 ? "trail" : tile === 24 ? "brick" : "lantern"; add(s, item, 1); message = `${item} recovered.`; }
+  else return "F gathers nearby trees, rocks and herbs. Q builds; E opens inventory and maps.";
   setTile(s, x, y, tile === 17 ? 21 : tile === 7 ? 2 : villageTile(x, y) ? 0 : groundTile(s.world.seed, x, y)); s.totals.harvested++;
   return message;
 }
@@ -246,7 +260,7 @@ export function interact(s: GameState) {
 }
 export function recall(s: GameState, village = false) {
   const target = village ? camp : s.spawn;
-  if (distance(s, target) <= 1) return "You are already at this camp. E rests here.";
+  if (distance(s, target) <= 1) return "You are already at this camp. F rests here.";
   if (allEnemies(s).some(e => e.hp && bossAwake(s, e) && distance(e, s) < 6)) return "Find safe ground before recalling: enemies are too close.";
   if (s.chakra < 25) return "Recall needs 25 chakra.";
   s.chakra -= 25; s.x = target.x; s.y = target.y; s.projectiles = []; streamWorld(s);
@@ -254,14 +268,15 @@ export function recall(s: GameState, village = false) {
 }
 export function build(s: GameState, material: Material) {
   const x = s.x + s.facing[0], y = s.y + s.facing[1], tile = tileAt(s, x, y);
-  if ([7, 12, 16, 17, 22].includes(tile)) return "Recover or harvest this tile with X before replacing it.";
+  if ([7, 12, 16, 17, 22, 23, 24].includes(tile)) return "Recover or harvest this tile with X before replacing it.";
   if (!materials.includes(material) || !coordinate(x) || !coordinate(y) || protectedTile(x, y) || (solid(tile) && !(material === "bridge" && tile === 2)) || allEnemies(s).some(e => e.hp > 0 && e.x === x && e.y === y)) return "That tile is occupied.";
   if (material === "bridge" && tile !== 2) return "Place bridges over water.";
-  if (!stock(s, material)) return material === "wood" || material === "stone" ? `Mine more ${material} first.` : material === "garden" ? "Craft herb seeds in Bag / recipes first." : `Craft a ${material} in Bag / recipes first.`;
-  spend(s, material, 1); setTile(s, x, y, { wood: 5, stone: 6, bridge: 7, fence: 13, lantern: 14, campfire: 16, garden: 22 }[material]);
+  if (material !== "bridge" && tile === 2) return "Only bridges can cross water.";
+  if (!stock(s, material)) return material === "wood" || material === "stone" ? `Mine more ${material} first.` : material === "garden" ? "Craft herb seeds in Inventory first." : `Craft ${material} in Inventory first.`;
+  spend(s, material, 1); setTile(s, x, y, { wood: 5, stone: 6, bridge: 7, fence: 13, lantern: 14, campfire: 16, garden: 22, trail: 23, brick: 24 }[material]);
   s.totals.built++;
-  if (material === "garden") { s.crops[pointKey(x, y)] = s.elapsed + 45; return "Herb seeds planted. Grow for 45 active seconds; harvest with E for herbs and a seed."; }
-  return material === "campfire" ? "Campfire placed. E rests here and sets your respawn." : `${material[0].toUpperCase() + material.slice(1)} block placed.`;
+  if (material === "garden") { s.crops[pointKey(x, y)] = s.elapsed + 45; return "Herb seeds planted. Grow for 45 active seconds; harvest with F for herbs and a seed."; }
+  return material === "campfire" ? "Campfire placed. F rests here and sets your respawn." : `${material[0].toUpperCase() + material.slice(1)} block placed.`;
 }
 export function craft(s: GameState, id: RecipeId) {
   const recipe = recipes.find(r => r.id === id); if (!recipe) return "Unknown recipe.";
@@ -357,13 +372,32 @@ export function stepEnemies(s: GameState, tick: number) {
   }
   return hurt ? hurtPlayer(s, 1) : "";
 }
+export function missionReady(s: GameState, id: Mission) {
+  if (id === "trailblazer") return Object.keys(s.world.explored).length >= 8;
+  if (id === "homesteader") return s.totals.built >= 10;
+  return s.totals.harvested >= 20 && s.totals.defeated >= 5;
+}
+export function claimMission(s: GameState, id: Mission) {
+  if (!missions.includes(id)) return "Unknown mission.";
+  if (s.missions.includes(id)) return "Mission reward already claimed.";
+  if (!missionReady(s, id)) return "Keep exploring the frontier to finish this mission.";
+  const reward: Partial<Inventory> = id === "trailblazer" ? { trail: 6 } : id === "homesteader" ? { brick: 4 } : { medicine: 3, ore: 3 };
+  if (Object.entries(reward).some(([item, count]) => s.inventory[item as keyof Inventory] + count > 999)) return "Make room in your inventory before claiming this reward.";
+  s.missions.push(id);
+  for (const [item, count] of Object.entries(reward)) add(s, item, count);
+  return id === "trailblazer" ? "Trailblazer claimed: +6 trail pavers." : id === "homesteader" ? "Homesteader claimed: +4 kiln bricks." : "Vanguard claimed: +3 medicine, +3 ore.";
+}
 export function objectives(s: GameState) {
   const warden = s.enemies.find(e => e.kind === "warden");
+  const mission = (id: Mission, title: string, detail: string) => ({ id, done: s.missions.includes(id), ready: missionReady(s, id), title, detail });
   return [
     { done: s.quests.includes("supplies"), title: "Light the village", detail: "Kiyo · 8,17 · Bring 3 wood and 2 stone. Reward: 2 ore + medicine." },
     { done: s.quests.includes("herbalist"), title: "Help the grove", detail: "Aoi · 7,10 · Bring 3 herbs. Reward: 2 medicine + cheaper dash." },
     { done: s.scrolls.length === 3, title: `Recover the seals · ${s.scrolls.length}/3`, detail: "Shrines: 7,7 · 32,8 · 30,25. Unlock Wind, Lightning and Mangekyo." },
     { done: !!warden && !warden.hp, title: "Challenge the Moonfall Warden", detail: "Southeast ruins · 34,26. Recover all scrolls to wake it. Heal, dash and freeze time." },
     { done: s.quests.includes("warden"), title: "Bring the light home", detail: "Return to Kiyo after the Warden falls. Reward: 3 lanterns. Keep building afterward." },
+    mission("trailblazer", `Trailblazer · ${Math.min(8, Object.keys(s.world.explored).length)}/8 chunks`, "Explore 8 chunks. Claim 6 trail pavers."),
+    mission("homesteader", `Homesteader · ${Math.min(10, s.totals.built)}/10 builds`, "Place 10 blocks. Claim 4 kiln bricks."),
+    mission("vanguard", `Frontier vanguard · ${Math.min(20, s.totals.harvested)}/20 harvests · ${Math.min(5, s.totals.defeated)}/5 foes`, "Harvest 20 resources and defeat 5 enemies. Claim 3 medicine + 3 ore."),
   ];
 }

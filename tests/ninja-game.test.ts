@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { WORLD_W, WORLD_H, createGame, readSave, movePlayer, mine, build, cast, collectScroll, stepEnemies, stepProjectiles, shrines, npcs, tileAt, solid, craft, talk, heal, dash, maxHp, interact, objectives, type GameState } from "../lib/ninja-game.ts";
+import { WORLD_W, WORLD_H, createGame, readSave, movePlayer, jump, mine, build, cast, collectScroll, stepEnemies, stepProjectiles, shrines, npcs, tileAt, solid, craft, talk, heal, dash, maxHp, interact, objectives, claimMission, type GameState } from "../lib/ninja-game.ts";
 import { resumeAudio } from "../lib/workshop-audio.ts";
 
 function arena(): GameState {
@@ -125,7 +125,38 @@ test("NPC dialogue and rewards are unique, journal tracks all five objectives", 
   assert.deepEqual(s.scrolls, [0, 1, 2]); assert.equal(objectives(s).filter(q => q.done).length, 3);
   s.enemies.find(e => e.kind === "warden")!.hp = 0; s.x = 8; s.y = 16;
   assert.match(talk(s), /lifted the seal/); assert.equal(s.inventory.lantern, 3); talk(s); assert.equal(s.inventory.lantern, 3);
-  assert.ok(objectives(s).every(q => q.done)); s.x = 10; s.y = 16; s.hp = 1; assert.match(interact(s), /Rested/); assert.equal(s.hp, 6);
+  assert.ok(objectives(s).filter(q => !("id" in q)).every(q => q.done)); s.x = 10; s.y = 16; s.hp = 1; assert.match(interact(s), /Rested/); assert.equal(s.hp, 6);
+});
+
+test("jump validates both cardinal tiles while new builds and mission rewards round-trip once", () => {
+  const s = arena(); s.x = 25; s.y = 10; s.facing = [1, 0];
+  assert.match(jump(s), /two tiles/); assert.equal(s.x, 27);
+  s.x = 25; s.tiles[10 * WORLD_W + 26] = 3; assert.match(jump(s), /blocked/); assert.equal(s.x, 25, "jump cannot cross a tree");
+  s.tiles[10 * WORLD_W + 26] = 0; s.tiles[10 * WORLD_W + 27] = 24; assert.match(jump(s), /blocked/); assert.equal(s.x, 25, "jump landing must be clear");
+  s.tiles[10 * WORLD_W + 27] = 0; s.wood = 10; s.stone = 10; s.inventory.ore = 2; assert.match(craft(s, "trail"), /×4/); assert.match(build(s, "trail"), /placed/); assert.equal(tileAt(s, 26, 10), 23); assert.equal(movePlayer(s, 1, 0), true); s.facing = [-1, 0]; assert.match(mine(s), /trail recovered/); assert.equal(s.inventory.trail, 4);
+  s.x = 25; s.facing = [1, 0]; assert.match(craft(s, "brick"), /×2/); assert.match(build(s, "brick"), /placed/); assert.equal(tileAt(s, 26, 10), 24); assert.equal(movePlayer(s, 1, 0), false); assert.match(mine(s), /brick recovered/); assert.equal(s.inventory.brick, 2);
+  s.world.explored = Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`${i},0`, true])); s.totals.built = 10; s.totals.harvested = 20; s.totals.defeated = 5;
+  assert.match(claimMission(s, "trailblazer"), /6 trail/); assert.match(claimMission(s, "homesteader"), /4 kiln/); assert.match(claimMission(s, "vanguard"), /3 medicine/);
+  const inventory = { ...s.inventory }; assert.match(claimMission(s, "vanguard"), /already/); assert.deepEqual(s.inventory, inventory);
+  assert.ok(objectives(s).filter(q => "id" in q).every(q => q.done)); assert.deepEqual(readSave(JSON.stringify(s), true), s);
+});
+
+test("mission rewards remain claimable until the complete reward fits", () => {
+  const s = createGame(); s.totals.built = 10; s.totals.harvested = 20; s.totals.defeated = 5;
+  s.inventory.brick = 998; assert.match(claimMission(s, "homesteader"), /Make room/); assert.equal(s.missions.length, 0); assert.equal(s.inventory.brick, 998);
+  s.inventory.brick = 995; assert.match(claimMission(s, "homesteader"), /4 kiln/); assert.equal(s.inventory.brick, 999);
+  s.inventory.ore = 999; const medicine = s.inventory.medicine; assert.match(claimMission(s, "vanguard"), /Make room/); assert.equal(s.inventory.medicine, medicine); assert.ok(!s.missions.includes("vanguard"));
+  s.inventory.ore = 996; assert.match(claimMission(s, "vanguard"), /3 medicine/); assert.equal(s.inventory.ore, 999); assert.equal(s.inventory.medicine, medicine + 3);
+});
+
+test("expanded v3 fields default for old saves and reject invalid mission, inventory and tile data", () => {
+  const s = createGame(), old = JSON.parse(JSON.stringify(s)); delete old.missions; delete old.inventory.trail; delete old.inventory.brick;
+  const migrated = readSave(JSON.stringify(old), true); assert.deepEqual(migrated.missions, []); assert.equal(migrated.inventory.trail, 0); assert.equal(migrated.inventory.brick, 0);
+  for (const changed of [
+    { ...s, missions: ["invented"] },
+    { ...s, inventory: { ...s.inventory, brick: -1 } },
+    { ...s, world: { ...s.world, changes: { "-1,-1": 25 } } },
+  ]) assert.throws(() => readSave(JSON.stringify(changed), true), /Invalid world save/);
 });
 
 test("archers shoot, guards move slowly, Warden sleeps until three seals, freeze stops hostile shots", () => {

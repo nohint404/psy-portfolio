@@ -3,31 +3,37 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { resumeAudio } from "@/lib/workshop-audio";
-import { SAVE_KEY, readSave, movePlayer, interact, mine, build, cast, collectScroll, stepEnemies, stepProjectiles, craft, heal, dash, recipes, objectives, maxHp, materials, recall, streamWorld, advanceWorld, daylight, type GameState, type Material, type Jutsu, type RecipeId } from "@/lib/ninja-game";
+import { SAVE_KEY, readSave, movePlayer, jump, interact, mine, build, cast, collectScroll, stepEnemies, stepProjectiles, craft, heal, dash, recipes, objectives, claimMission, maxHp, materials, recall, streamWorld, advanceWorld, daylight, type GameState, type Material, type Jutsu, type RecipeId, type Mission } from "@/lib/ninja-game";
 import { drawWorld, drawIntro, drawMap } from "@/lib/ninja-render";
 import type { SpriteMotion } from "@/lib/ninja-motion";
 import Icon from "./PixelIcon";
 import "./NinjaDream.css";
 
 type Action = "kunai" | "chakra" | "mine" | "build" | "eye" | "scroll" | "heal" | "dash" | "recall" | "recover";
-const keys: Record<string, [number, number]> = { ArrowUp: [0, -1], w: [0, -1], ArrowDown: [0, 1], s: [0, 1], ArrowLeft: [-1, 0], a: [-1, 0], ArrowRight: [1, 0], d: [1, 0] };
-const actionKeys: Record<string, Action> = { j: "kunai", k: "chakra", e: "mine", q: "build", " ": "eye", Enter: "scroll", h: "heal", l: "dash", r: "recall", x: "recover" };
+const directions: Record<string, [number, number]> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
+const movementCode = (event: KeyboardEvent) => directions[event.code] ? event.code : directions[event.key] ? event.key : "";
+const actionKeys: Record<string, Action> = { j: "kunai", k: "chakra", f: "mine", q: "build", g: "eye", Enter: "scroll", h: "heal", l: "dash", r: "recall", x: "recover" };
+const hotbar = [
+  ["kunai", "Kunai", "J"], ["chakra", "Jutsu", "K"], ["mine", "Interact", "F"], ["build", "Build", "Q"], ["heal", "Heal", "H"], ["dash", "Dash", "L"], ["recover", "Recover", "X"], ["recall", "Recall", "R"], ["eye", "Eye", "G"],
+] as const;
 
 export default function NinjaDream({ sound, intro = true, onClose }: { sound: boolean; intro?: boolean; onClose: () => void }) {
   const [phase, setPhase] = useState<"intro" | "game">(intro ? "intro" : "game");
-  const [message, setMessage] = useState("Explore beyond the village: terrain keeps growing in every direction. E gathers / talks, Q builds, I opens recipes and maps. Tap the world to aim; R recalls your camp.");
+  const [message, setMessage] = useState("E: inventory · F: interact · Space: jump. Controls are in the pause menu.");
   const [stats, setStats] = useState({ hp: 6, maxLife: 6, chakra: 100, wood: 8, stone: 4, herb: 0, ore: 0, medicine: 1, scrolls: 0 });
   const [material, setMaterial] = useState<Material>("wood"), materialRef = useRef<Material>("wood");
   const [jutsu, setJutsu] = useState<Jutsu>("fire"), jutsuRef = useRef<Jutsu>("fire");
   const [journal, setJournal] = useState(false), journalRef = useRef(false), journalPause = useRef(false);
   const [journalPage, setJournalPage] = useState<"bag" | "quests" | "map">("bag");
-  const [moreTools, setMoreTools] = useState(false);
   const [mapMode, setMapMode] = useState<"local" | "village" | "atlas">("local");
   const [pendingImport, setPendingImport] = useState<GameState | null>(null);
   const importFile = useRef<HTMLInputElement>(null), importGeneration = useRef(0), externalWrite = useRef(false);
   const journalClose = useRef<HTMLButtonElement>(null);
   const [muted, setMuted] = useState(!sound);
   const [paused, setPaused] = useState(false), pausedRef = useRef(false);
+  const [pausePage, setPausePage] = useState<"menu" | "controls">("menu");
+  const resumeButton = useRef<HTMLButtonElement>(null), pausePanel = useRef<HTMLElement>(null), pausePageRef = useRef(pausePage);
+  const [selectedTool, setSelectedTool] = useState(0), selectedToolRef = useRef(0);
   const [saveStatus, setSaveStatus] = useState("Loading your world…");
   const screen = useRef<HTMLDivElement>(null), canvas = useRef<HTMLCanvasElement>(null);
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
@@ -35,7 +41,8 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
   const state = useRef<GameState | null>(null), skin = useRef<HTMLImageElement | null>(null);
   const audio = useRef<AudioContext | null>(null), notes = useRef<OscillatorNode[]>([]);
   const clips = useRef(new Map<string, Promise<AudioBuffer>>()), samples = useRef<AudioBufferSourceNode[]>([]), soundGeneration = useRef(0);
-  const held = useRef(new Set<string>()), freezeLeft = useRef(0);
+  const held = useRef(new Set<string>()), pointers = useRef(new Map<number, string>()), visualTime = useRef(0), freezeLeft = useRef(0), jumpStarted = useRef(-Infinity);
+  const clearInput = useCallback(() => { held.current.clear(); pointers.current.clear(); }, []);
   const motions = useRef(new Map<string, SpriteMotion>()), gesture = useRef<{ kind: string; started: number } | undefined>(undefined);
   const lastAction = useRef(0), lastMove = useRef(0), dirty = useRef(false), soundOn = useRef(sound);
   const stopSound = useCallback(() => {
@@ -82,7 +89,7 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
     try { localStorage.setItem(SAVE_KEY, value); persistent = true; } catch { /* Try the existing tab save next. */ }
     try { sessionStorage.setItem(SAVE_KEY, value); tab = true; } catch { /* A downloadable backup remains available. */ }
     if (persistent || tab) dirty.current = false;
-    setSaveStatus(persistent ? "Saved on this device" : tab ? "Tab-only save · export a permanent copy" : "Storage full / blocked · export your world in Bag");
+    setSaveStatus(persistent ? "Saved on this device" : tab ? "Tab-only save · export a permanent copy" : "Storage full / blocked · export your world in Inventory");
   }, []);
   const syncStats = useCallback(() => {
     const s = state.current;
@@ -90,21 +97,30 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
   }, []);
   const finishIntro = useCallback(() => { stopSound(); setPhase("game"); }, [stopSound]);
   const leave = useCallback(() => { save(); stopSound(); if (document.fullscreenElement === screen.current) void document.exitFullscreen().catch(() => {}); onClose(); }, [save, stopSound, onClose]);
-  const togglePause = useCallback(() => {
-    if (journalRef.current) return;
-    pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); held.current.clear(); stopSound(); save(); canvas.current?.focus();
-  }, [save, stopSound]);
+  const setGamePaused = useCallback((value: boolean) => {
+    pausedRef.current = value; setPaused(value); clearInput(); stopSound(); save();
+    if (value) { setPausePage("menu"); window.setTimeout(() => resumeButton.current?.focus(), 0); }
+    else window.setTimeout(() => canvas.current?.focus(), 0);
+  }, [save, stopSound, clearInput]);
+  const togglePause = useCallback(() => { if (!journalRef.current) setGamePaused(!pausedRef.current); }, [setGamePaused]);
   const toggleJournal = useCallback(() => {
     const open = !journalRef.current;
-    journalRef.current = open; setJournal(open); held.current.clear();
+    journalRef.current = open; setJournal(open); clearInput();
     if (open) { journalPause.current = pausedRef.current; pausedRef.current = true; stopSound(); }
     else { pausedRef.current = journalPause.current; canvas.current?.focus(); }
     setPaused(pausedRef.current); syncStats(); save();
-  }, [save, syncStats, stopSound]);
+  }, [save, syncStats, stopSound, clearInput]);
+  const performJump = useCallback(() => {
+    const s = state.current, now = visualTime.current;
+    if (!s || pausedRef.current || now - jumpStarted.current < 380) return;
+    const beforeX = s.x, beforeY = s.y, text = jump(s);
+    if (s.x !== beforeX || s.y !== beforeY) { jumpStarted.current = now; gesture.current = { kind: "jump", started: now }; dirty.current = true; tone(); }
+    setMessage(text); syncStats(); save(); canvas.current?.focus();
+  }, [save, syncStats, tone]);
   const act = useCallback((action: Action) => {
     const s = state.current, now = performance.now();
     if (!s || pausedRef.current || now - lastAction.current < 220) return;
-    lastAction.current = now; gesture.current = { kind: action, started: now };
+    lastAction.current = now; gesture.current = { kind: action, started: visualTime.current };
     let text = "";
     if (action === "mine") text = interact(s);
     else if (action === "recover") text = mine(s);
@@ -125,24 +141,32 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
     if (!state.current) return;
     setMessage(craft(state.current, id)); dirty.current = true; syncStats(); save(); tone();
   }
+  function claim(id: Mission) {
+    if (!state.current) return;
+    setMessage(claimMission(state.current, id)); dirty.current = true; syncStats(); save(); tone();
+  }
+  function selectTool(index: number) { const next = (index + hotbar.length) % hotbar.length; selectedToolRef.current = next; setSelectedTool(next); canvas.current?.focus(); }
   function changeSound() { const enabled = muted; soundOn.current = enabled; setMuted(!enabled); if (!enabled) stopSound(); else if (phase === "intro") playClip("itachi-mangekyo"); else tone(); }
   function fullscreen() { if (screen.current?.requestFullscreen) void screen.current.requestFullscreen().catch(() => setMessage("Fullscreen is unavailable here. The game already fills the page.")); }
   function touchMove(key: string, event: React.PointerEvent<HTMLButtonElement>) {
     event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); canvas.current?.focus();
     if (pausedRef.current || !state.current) return;
-    movePlayer(state.current, ...keys[key]); dirty.current = true; lastMove.current = performance.now(); held.current.add(key);
+    pointers.current.set(event.pointerId, key);
+    movePlayer(state.current, ...directions[key]); dirty.current = true; lastMove.current = performance.now();
   }
 
-  function aim(event: React.PointerEvent<HTMLCanvasElement>) {
+  function canvasAction(event: React.PointerEvent<HTMLCanvasElement>) {
     const s = state.current; if (!s || pausedRef.current || phase !== "game") return;
     const rect = event.currentTarget.getBoundingClientRect(), dx = (event.clientX - rect.left - 4) / (rect.width - 8) * 320 - 168, dy = (event.clientY - rect.top - 4) / (rect.height - 8) * 240 - 120;
-    s.facing = Math.abs(dx) >= Math.abs(dy) ? [dx < 0 ? -1 : 1, 0] : [0, dy < 0 ? -1 : 1]; dirty.current = true; event.currentTarget.focus();
+    s.facing = Math.abs(dx) >= Math.abs(dy) ? [dx < 0 ? -1 : 1, 0] : [0, dy < 0 ? -1 : 1]; dirty.current = true; event.preventDefault(); event.currentTarget.focus();
+    const selected = hotbar[selectedToolRef.current][0];
+    act(event.button === 2 ? selected === "build" ? "build" : "mine" : selected);
   }
   function exportWorld() {
     if (!state.current) return;
     const url = URL.createObjectURL(new Blob([JSON.stringify(state.current)], { type: "application/json" })), link = document.createElement("a");
     link.href = url; link.download = `shinobi-world-${state.current.world.seed}.json`; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setMessage("World exported. Keep this file to restore your builds, crops, quests and discoveries on another device.");
+    setMessage("World exported. Keep this file to restore builds, crops, missions and discoveries on another device.");
   }
   async function previewImport(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0], generation = ++importGeneration.current; event.currentTarget.value = ""; if (!file) return;
@@ -155,7 +179,7 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
   }
   function acceptImport() {
     if (!pendingImport) return;
-    externalWrite.current = false; motions.current.clear(); gesture.current = undefined; state.current = pendingImport; streamWorld(pendingImport); setPendingImport(null); freezeLeft.current = 0; held.current.clear(); stopSound(); dirty.current = true; syncStats(); save(); setMessage("World imported. Close your journal to continue exploring.");
+    externalWrite.current = false; motions.current.clear(); gesture.current = undefined; state.current = pendingImport; streamWorld(pendingImport); setPendingImport(null); freezeLeft.current = 0; jumpStarted.current = -Infinity; clearInput(); stopSound(); dirty.current = true; syncStats(); save(); setMessage("World imported. Close your journal to continue exploring.");
   }
   function villageRecall() { if (!state.current) return; setMessage(recall(state.current, true)); dirty.current = true; syncStats(); save(); }
 
@@ -167,41 +191,58 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
     }
     state.current = restored ?? readSave(null); streamWorld(state.current);
     if (restored || !invalid) save();
-    else { externalWrite.current = true; setSaveStatus("Unreadable save · original kept"); setMessage("The stored world could not be read and was not overwritten. You can explore a fresh world, export it in Bag, then import that file to replace the unreadable save."); }
-    const otherTab = (event: StorageEvent) => { if (event.key !== SAVE_KEY && event.key !== null) return; externalWrite.current = true; pausedRef.current = true; journalPause.current = true; setPaused(true); held.current.clear(); stopSound(); setSaveStatus("Updated in another tab · export this copy"); setMessage("Another tab changed this world. Export your copy in Bag, then reload to use the newer save. This tab will not overwrite it."); };
+    else { externalWrite.current = true; setSaveStatus("Unreadable save · original kept"); setMessage("The stored world could not be read and was not overwritten. You can explore a fresh world, export it in Inventory, then import that file to replace the unreadable save."); }
+    const otherTab = (event: StorageEvent) => { if (event.key !== SAVE_KEY && event.key !== null) return; externalWrite.current = true; pausedRef.current = true; journalPause.current = true; setPaused(true); clearInput(); stopSound(); setSaveStatus("Updated in another tab · export this copy"); setMessage("Another tab changed this world. Export your copy in Bag, then reload to use the newer save. This tab will not overwrite it."); };
     window.addEventListener("storage", otherTab);
     const image = new Image(); image.src = "/art/psymariux-skin.png"; skin.current = image;
     const pagehide = () => save(); window.addEventListener("pagehide", pagehide);
-    const loseFocus = () => { held.current.clear(); stopSound(); save(); }; window.addEventListener("blur", loseFocus); document.addEventListener("visibilitychange", loseFocus);
+    const loseFocus = () => { pausedRef.current = true; journalPause.current = true; setPaused(true); setPausePage("menu"); clearInput(); stopSound(); save(); }; window.addEventListener("blur", loseFocus); document.addEventListener("visibilitychange", loseFocus);
     return () => {
       save(); stopSound(); const context = audio.current; audio.current = null;
       if (context && context.state !== "closed") void context.close().catch(() => {});
       pendingRequests.current++; window.removeEventListener("storage", otherTab); window.removeEventListener("pagehide", pagehide); window.removeEventListener("blur", loseFocus); document.removeEventListener("visibilitychange", loseFocus);
     };
-  }, [save, stopSound]);
+  }, [save, stopSound, clearInput]);
+
+  useEffect(() => {
+    pausePageRef.current = pausePage;
+    if (paused && !journal) pausePanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [pausePage, paused, journal]);
 
   useEffect(() => {
     const target = canvasElement, ctx = target?.getContext("2d"); if (!target || !ctx) return;
     ctx.imageSmoothingEnabled = false;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const started = performance.now(), pressed = held.current;
-    let raf = 0, last = started, enemyTime = 0, projectileTime = 0, hudTime = 0, saveTime = 0, tick = 0;
+    const started = performance.now();
+    let raf = 0, last = started, painted = false, enemyTime = 0, projectileTime = 0, hudTime = 0, saveTime = 0, tick = 0;
     if (phase === "intro") { if (!reduced) { playClip("itachi-mangekyo"); playClip("sharingan", 1.9); } }
     else { target.focus(); syncStats(); }
     const keydown = (event: KeyboardEvent) => {
-      if (phase !== "game" || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (phase !== "game" || event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
+      const control = event.target as HTMLElement, editable = ["SELECT", "INPUT", "TEXTAREA"].includes(control.tagName) || control.isContentEditable;
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      const control = event.target as HTMLElement;
-      if (key === "i" && !event.repeat && !["SELECT", "INPUT", "TEXTAREA"].includes(control.tagName)) { event.preventDefault(); toggleJournal(); return; }
+      if (key === "Escape" && !event.repeat) {
+        event.preventDefault(); clearInput();
+        if (journalRef.current) toggleJournal();
+        else if (pausedRef.current && pausePageRef.current === "controls") setPausePage("menu");
+        else setGamePaused(!pausedRef.current);
+        return;
+      }
+      if (editable) return;
+      if ((key === "e" || key === "i") && !event.repeat) { event.preventDefault(); toggleJournal(); return; }
       if (event.target !== target || journalRef.current) return;
-      if (key === "p" && !event.repeat) { event.preventDefault(); togglePause(); }
-      else if (keys[key]) {
+      if ((event.code === "ShiftLeft" || event.code === "ShiftRight") && !pausedRef.current) { held.current.add(event.code); return; }
+      if (key === "p" && !event.repeat) { event.preventDefault(); togglePause(); return; }
+      if (key === " " && !event.repeat) { event.preventDefault(); performJump(); return; }
+      if (/^[1-9]$/.test(key) && !event.repeat) { event.preventDefault(); selectedToolRef.current = Number(key) - 1; setSelectedTool(Number(key) - 1); return; }
+      const movement = movementCode(event);
+      if (movement) {
         event.preventDefault();
-        if (!pausedRef.current && !event.repeat && state.current) { movePlayer(state.current, ...keys[key]); dirty.current = true; lastMove.current = performance.now(); }
-        if (!pausedRef.current) held.current.add(key);
+        if (!pausedRef.current && !event.repeat && state.current) { movePlayer(state.current, ...directions[movement]); dirty.current = true; lastMove.current = performance.now(); }
+        if (!pausedRef.current) held.current.add(movement);
       } else if (actionKeys[key]) { event.preventDefault(); if (!event.repeat) act(actionKeys[key]); }
     };
-    const keyup = (event: KeyboardEvent) => { held.current.delete(event.key.length === 1 ? event.key.toLowerCase() : event.key); };
+    const keyup = (event: KeyboardEvent) => { held.current.delete(event.code); held.current.delete(event.key); };
     window.addEventListener("keydown", keydown); window.addEventListener("keyup", keyup);
     function draw(now: number) {
       if (!ctx || !target || !skin.current || !state.current) return;
@@ -215,9 +256,11 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
       }
       const s = state.current;
       if (!pausedRef.current) {
+        visualTime.current += dt * 1000;
         advanceWorld(s, dt); streamWorld(s);
-        if (now - lastMove.current > 115) {
-          const key = [...held.current].at(-1), direction = key && keys[key];
+        const sprinting = held.current.has("ShiftLeft") || held.current.has("ShiftRight") || [...pointers.current.values()].includes("sprint"), moveDelay = sprinting ? 65 : 115;
+        if (now - lastMove.current > moveDelay) {
+          const key = [...held.current, ...pointers.current.values()].reverse().find(value => directions[value]), direction = key && directions[key];
           if (direction) { movePlayer(s, ...direction); dirty.current = true; lastMove.current = now; }
         }
         freezeLeft.current = Math.max(0, freezeLeft.current - dt);
@@ -228,29 +271,32 @@ export default function NinjaDream({ sound, intro = true, onClose }: { sound: bo
         if (hudTime > .25) { hudTime = 0; syncStats(); }
         if (saveTime > 2) { saveTime = 0; if (dirty.current) save(); }
       }
-      drawWorld(ctx, s, skin.current, now, held.current.size > 0, reduced || pausedRef.current, freezeLeft.current, motions.current, gesture.current);
-      if (pausedRef.current && !journalRef.current) { ctx.fillStyle = "#24364a"; ctx.fillRect(96, 94, 128, 39); ctx.fillStyle = "#f6e4b3"; ctx.font = "19px 'Pixelify Sans', monospace"; ctx.textAlign = "center"; ctx.fillText("Paused", 160, 119); }
+      if (pausedRef.current && painted) return;
+      drawWorld(ctx, s, skin.current, visualTime.current, held.current.size + pointers.current.size > 0, reduced, freezeLeft.current, motions.current, gesture.current, jumpStarted.current);
+      painted = true;
     }
     raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); pressed.clear(); window.removeEventListener("keydown", keydown); window.removeEventListener("keyup", keyup); stopSound(); };
-  }, [canvasElement, phase, act, finishIntro, save, syncStats, tone, playClip, stopSound, togglePause, toggleJournal]);
+    return () => { cancelAnimationFrame(raf); clearInput(); window.removeEventListener("keydown", keydown); window.removeEventListener("keyup", keyup); stopSound(); };
+  }, [canvasElement, phase, act, finishIntro, performJump, save, setGamePaused, syncStats, playClip, stopSound, togglePause, toggleJournal, clearInput]);
 
   useEffect(() => { if (journal) journalClose.current?.focus(); }, [journal]);
 
   const world = state.current;
-  return <Dialog.Root open onOpenChange={open => { if (!open) leave(); }}><Dialog.Portal><Dialog.Overlay className="dream-overlay" /><Dialog.Content className="ninja-dream" ref={screen} aria-describedby="dream-description" onOpenAutoFocus={event => { event.preventDefault(); canvas.current?.focus(); }} onEscapeKeyDown={event => { if (journalRef.current) { event.preventDefault(); toggleJournal(); } }}>
+  const loadout = <><label className="dream-material">Jutsu<select value={jutsu} onChange={event => { const value = event.target.value as Jutsu; jutsuRef.current = value; setJutsu(value); }}><option value="fire">Fire · 20</option><option value="wind" disabled={stats.scrolls < 1}>Wind · 25{stats.scrolls < 1 ? " (1 scroll)" : ""}</option><option value="lightning" disabled={stats.scrolls < 2}>Lightning · 35{stats.scrolls < 2 ? " (2 scrolls)" : ""}</option></select></label><label className="dream-material">Build<select value={material} onChange={event => { const value = event.target.value as Material; materialRef.current = value; setMaterial(value); }}>{materials.map(m => <option key={m} value={m}>{m === "garden" ? "Herb seeds" : m[0].toUpperCase() + m.slice(1)} ({m === "wood" ? stats.wood : m === "stone" ? stats.stone : world?.inventory[m] ?? 0})</option>)}</select></label></>;
+  return <Dialog.Root open onOpenChange={open => { if (!open) leave(); }}><Dialog.Portal><Dialog.Overlay className="dream-overlay" /><Dialog.Content className="ninja-dream" ref={screen} aria-describedby="dream-description" onOpenAutoFocus={event => { event.preventDefault(); canvas.current?.focus(); }} onEscapeKeyDown={event => event.preventDefault()}>
     <header className="dream-header"><div><Dialog.Title>{phase === "intro" ? "The hidden dream" : <><span className="dream-title-prefix">Psy · </span>Shinobi sandbox</>}</Dialog.Title><span title={phase === "game" ? saveStatus : undefined}>{phase === "intro" ? "Psymariux / Mangekyo Sharingan" : saveStatus}</span></div><div className="dream-header-actions"><button className="icon-button" onClick={changeSound} aria-label={muted ? "Enable game sound" : "Mute game sound"} aria-pressed={!muted}><Icon name={muted ? "volume-x" : "volume-2"} /></button><button className="dream-button fullscreen-button" onClick={fullscreen}>Fullscreen</button><button className="dream-button dream-exit" onClick={leave}>Portfolio <Icon name="close" /></button></div></header>
-    <Dialog.Description id="dream-description" className="sr-only">Explore a procedurally generated pixel ninja world without map borders. Tap the world to aim without moving. R recalls your camp. WASD or arrows move, J throws kunai, K casts the selected jutsu, E talks, rests, mines or collects a scroll, Q builds, L dashes, H heals, I opens your inventory, quests and map. Space freezes enemies after three scrolls. Escape closes your bag or saves and returns to the portfolio. Touch controls are available.</Dialog.Description>
+    <Dialog.Description id="dream-description" className="sr-only">Explore a procedural pixel ninja world. WASD or arrows move, Shift sprints, Space jumps, E or I opens inventory, F interacts, Q builds, J throws kunai, K casts jutsu, G uses Mangekyo, L dashes, H heals, R recalls and X recovers. Number keys, wheel or the touch hotbar select a tool. Primary pointer uses it; secondary pointer interacts or places. Escape opens the pause menu.</Dialog.Description>
     {phase === "game" && <div className="dream-hud"><span aria-label={`Health ${stats.hp} of ${stats.maxLife}`}>Life <b>{"♥".repeat(stats.hp)}<i>{"♡".repeat(stats.maxLife - stats.hp)}</i></b></span><span>Chakra <meter min={0} max={100} value={stats.chakra} aria-label="Chakra" /><b>{stats.chakra}</b></span><span>Wood <b>{stats.wood}</b> / Stone <b>{stats.stone}</b> / Ore <b>{stats.ore}</b></span><span>Scrolls <b>{stats.scrolls}/3</b> · Day <b>{world ? Math.floor(world.elapsed / 240) + 1 : 1}</b> · {world && !daylight(world) ? "Moonrise" : "Daylight"}</span></div>}
-    <div className={`dream-viewport ${phase === "intro" ? "dream-intro" : ""}`}><canvas ref={attachCanvas} width={320} height={240} onPointerDown={aim} tabIndex={journal ? -1 : 0} aria-label={phase === "intro" ? "Psymariux awakens Itachi’s Mangekyo Sharingan" : "Procedural ninja world. WASD or arrows move; tap to aim. E interacts, Q builds, R recalls your camp. I opens recipes and maps."} />{phase === "intro" && <button className="dream-button intro-skip" onClick={finishIntro}>Skip / Play</button>}
-      {journal && world && <section className="dream-journal" aria-labelledby="journal-heading"><div className="journal-heading"><h3 id="journal-heading">Shinobi field journal</h3><button className="dream-button" ref={journalClose} onClick={toggleJournal}>Close <kbd>I / Esc</kbd></button></div><div className="journal-tabs" role="group" aria-label="Journal pages">{[["bag", "Bag / recipes"], ["quests", "Quests"], ["map", "World map"]].map(([id, label]) => <button key={id} className="dream-button" aria-pressed={journalPage === id} onClick={() => setJournalPage(id as typeof journalPage)}>{label}</button>)}</div>
+    <div className={`dream-viewport ${phase === "intro" ? "dream-intro" : ""}`}><canvas ref={attachCanvas} width={320} height={240} onPointerDown={canvasAction} onContextMenu={event => event.preventDefault()} onWheel={event => { if (phase !== "game" || pausedRef.current) return; event.preventDefault(); selectTool(selectedToolRef.current + (event.deltaY > 0 ? 1 : -1)); }} tabIndex={journal || paused ? -1 : 0} aria-label={phase === "intro" ? "Psymariux awakens Itachi’s Mangekyo Sharingan" : `Procedural ninja world. Selected tool: ${hotbar[selectedTool][1]}. WASD or arrows move, Shift sprints, Space jumps, E opens inventory and Escape pauses.`} />{phase === "intro" && <button className="dream-button intro-skip" onClick={finishIntro}>Skip / Play</button>}
+      {phase === "game" && paused && !journal && <section ref={pausePanel} className="dream-pause" aria-labelledby="pause-heading"><h3 id="pause-heading">{pausePage === "controls" ? "Controls" : "Game paused"}</h3>{pausePage === "menu" ? <div className="pause-actions"><button className="dream-button" ref={resumeButton} onClick={() => setGamePaused(false)}>Resume</button><button className="dream-button" onClick={() => setPausePage("controls")}>Controls</button><button className="dream-button" onClick={changeSound}>{muted ? "Sound off · turn on" : "Sound on · mute"}</button><button className="dream-button pause-save" onClick={leave}>Save &amp; return to portfolio</button></div> : <><dl className="control-list"><div><dt>Move</dt><dd>WASD / arrows · hold Shift to sprint</dd></div><div><dt>Jump</dt><dd>Space · two clear cardinal tiles</dd></div><div><dt>Inventory</dt><dd>E or I · recipes, missions and map</dd></div><div><dt>Combat</dt><dd>J kunai · K jutsu · G Mangekyo · L dash</dd></div><div><dt>World</dt><dd>F interact · Q build · X recover · H heal · R recall</dd></div><div><dt>Hotbar</dt><dd>1–9 or wheel · primary uses selected · secondary interacts / places</dd></div><div><dt>Menus</dt><dd>P or Esc pauses · Esc backs out one layer</dd></div></dl><button className="dream-button" onClick={() => setPausePage("menu")}>Back <kbd>Esc</kbd></button></>}</section>}
+      {journal && world && <section className="dream-journal" aria-labelledby="journal-heading"><div className="journal-heading"><h3 id="journal-heading">Shinobi field journal</h3><button className="dream-button" ref={journalClose} onClick={toggleJournal}>Close <kbd>E / Esc</kbd></button></div><div className="journal-tabs" role="group" aria-label="Journal pages">{[["bag", "Inventory / recipes"], ["quests", "Missions"], ["map", "World map"]].map(([id, label]) => <button key={id} className="dream-button" aria-pressed={journalPage === id} onClick={() => setJournalPage(id as typeof journalPage)}>{label}</button>)}</div>
         <p className="journal-message" role="status">{message}</p>
-        {journalPage === "bag" && <><dl className="dream-inventory">{[["Wood", world.wood], ["Stone", world.stone], ["Herbs", world.inventory.herb], ["Ore", world.inventory.ore], ["Medicine", world.inventory.medicine], ["Bridges", world.inventory.bridge], ["Fences", world.inventory.fence], ["Lanterns", world.inventory.lantern], ["Campfires", world.inventory.campfire], ["Herb seeds", world.inventory.garden]].map(([name, count]) => <div key={name}><dt>{name}</dt><dd>{count}</dd></div>)}</dl><h4>Crafting recipes</h4><div className="dream-recipes">{recipes.map(r => { const owned = (r.id === "armor" || r.id === "kunai") && world.upgrades.includes(r.id); const enough = Object.entries(r.cost).every(([key, count]) => (key === "wood" ? world.wood : key === "stone" ? world.stone : world.inventory[key as keyof typeof world.inventory]) >= count); return <div className="dream-recipe" key={r.id}><div><strong>{r.name}{r.amount > 1 ? ` ×${r.amount}` : ""}</strong><span>{Object.entries(r.cost).map(([name, count]) => `${count} ${name}`).join(" + ")}</span><small>{r.note}</small></div><button className="dream-button" disabled={owned || !enough} onClick={() => make(r.id)} aria-label={`Craft ${r.name}`}>{owned ? "Equipped" : "Craft"}</button></div>; })}</div></>}
+        {journalPage === "bag" && <><div className="dream-loadout journal-loadout">{loadout}</div><dl className="dream-inventory">{[["Wood", world.wood], ["Stone", world.stone], ["Herbs", world.inventory.herb], ["Ore", world.inventory.ore], ["Medicine", world.inventory.medicine], ["Trail pavers", world.inventory.trail], ["Kiln bricks", world.inventory.brick], ["Bridges", world.inventory.bridge], ["Fences", world.inventory.fence], ["Lanterns", world.inventory.lantern], ["Campfires", world.inventory.campfire], ["Herb seeds", world.inventory.garden]].map(([name, count]) => <div key={name}><dt>{name}</dt><dd>{count}</dd></div>)}</dl><h4>Crafting recipes</h4><div className="dream-recipes">{recipes.map(r => { const owned = (r.id === "armor" || r.id === "kunai") && world.upgrades.includes(r.id); const enough = Object.entries(r.cost).every(([key, count]) => (key === "wood" ? world.wood : key === "stone" ? world.stone : world.inventory[key as keyof typeof world.inventory]) >= count); return <div className="dream-recipe" key={r.id}><div><strong>{r.name}{r.amount > 1 ? ` ×${r.amount}` : ""}</strong><span>{Object.entries(r.cost).map(([name, count]) => `${count} ${name}`).join(" + ")}</span><small>{r.note}</small></div><button className="dream-button" disabled={owned || !enough} onClick={() => make(r.id)} aria-label={`Craft ${r.name}`}>{owned ? "Equipped" : "Craft"}</button></div>; })}</div></>}
         {journalPage === "bag" && <section className="dream-world-save" aria-labelledby="world-save-heading"><h4 id="world-save-heading">Keep your world</h4><p>{saveStatus}. Export a file before clearing browser data or moving to another device.</p><div className="journal-tabs"><button className="dream-button" onClick={exportWorld}>Export world</button><button className="dream-button" onClick={() => importFile.current?.click()}>Import world</button><input type="file" accept=".json,application/json" ref={importFile} hidden onChange={previewImport} aria-label="Import world save file" /></div>{pendingImport && <div className="world-import-review"><p>Seed {pendingImport.world.seed} · {Object.keys(pendingImport.world.explored).length} explored chunks · position {pendingImport.x},{pendingImport.y}. Replacing discards your current in-game world; export it first to keep both.</p><div className="journal-tabs"><button className="dream-button" onClick={acceptImport}>Replace world</button><button className="dream-button" onClick={() => { setPendingImport(null); setMessage("Import canceled. Your current world is unchanged."); }}>Cancel import</button></div></div>}</section>}
-        {journalPage === "quests" && <><ol className="dream-quests">{objectives(world).map(q => <li key={q.title} data-complete={q.done}><strong><span>{q.done ? "✓" : "○"}</span>{q.title}</strong><p>{q.detail}</p></li>)}</ol><h4>Beyond the village</h4><p className="journal-note">{Object.keys(world.world.explored).length} chunks explored · {world.totals.built} blocks placed · {world.totals.harvested} harvests · {world.totals.defeated} enemies defeated.</p><p className="journal-note">Follow trails through fields, forests, marshes, dunes and highlands. Clear ruin guards for supplies. Craft a campfire, place it with Q and rest with E to set a new respawn. X recovers blocks and campfires. Plant herb seeds, let them grow for 45 active seconds, then harvest herbs and a seed to plant again. The village quests unlock jutsu; they don’t end your world.</p></>}
+        {journalPage === "quests" && <><ol className="dream-quests">{objectives(world).map(q => <li key={q.title} data-complete={q.done}><div><strong><span>{q.done ? "✓" : "○"}</span>{q.title}</strong><p>{q.detail}</p></div>{"id" in q && <button className="dream-button" disabled={q.done || !q.ready} onClick={() => claim(q.id)}>{q.done ? "Claimed" : q.ready ? "Claim reward" : "In progress"}</button>}</li>)}</ol><h4>Beyond the village</h4><p className="journal-note">{Object.keys(world.world.explored).length} chunks explored · {world.totals.built} blocks placed · {world.totals.harvested} harvests · {world.totals.defeated} enemies defeated.</p><p className="journal-note">Follow trails through fields, forests, marshes, dunes and highlands. Clear ruin guards for supplies. Place a campfire with Q and rest with F to set a new respawn. X recovers builds. Plant herb seeds, let them grow for 45 active seconds, then harvest with F. Village quests unlock jutsu; the frontier missions stay repeat-proof.</p></>}
         {journalPage === "map" && <div className="dream-map"><div className="journal-tabs" role="group" aria-label="Map views">{[["local", "Nearby"], ["village", "Village"], ["atlas", "Explored atlas"]].map(([id, label]) => <button key={id} className="dream-button" aria-pressed={mapMode === id} onClick={() => setMapMode(id as typeof mapMode)}>{label}</button>)}</div><canvas width={240} height={192} ref={node => { if (node) { const ctx = node.getContext("2d"); if (ctx) drawMap(ctx, world, mapMode); } }} role="img" aria-label={`${mapMode} map. You are at ${world.x},${world.y}; your camp is ${world.spawn.x},${world.spawn.y}. ${Object.keys(world.world.explored).length} chunks explored. Village shrines at 7,7; 32,8; 30,25.`} /><p>You: {world.x},{world.y} · Camp: {world.spawn.x},{world.spawn.y}<br />{Object.keys(world.world.explored).length} chunks explored · Seed {world.world.seed}</p><p>Cyan: you · Amber: camp · Gold: seals · Rose: villagers · Red: Warden. Nearby follows you; Village shows the starting quests. Each atlas square is a 24×24 chunk; dark squares are unexplored, amber dots are camps, pale dots are ruins.</p><div className="journal-tabs"><button className="dream-button" onClick={() => { setMessage(recall(world)); dirty.current = true; syncStats(); save(); }}>Recall to camp · 25 chakra</button><button className="dream-button" onClick={villageRecall}>Return to village · 25 chakra</button></div><p>Recall needs safe ground. Walk away from enemies first. The world never resets when you return.</p></div>}
         <p className="journal-note">The world is paused while your journal is open.</p></section>}
     </div>
-    {phase === "game" && <><div className="dream-status" role={journal ? undefined : "status"}>{journal ? message : paused ? "Paused. Your world is saved; resume whenever you’re ready." : message}</div><div className="dream-controls" inert={journal}><div className="dream-dpad" aria-label="Movement controls">{[["ArrowUp", "↑", "Move up"], ["ArrowLeft", "←", "Move left"], ["ArrowDown", "↓", "Move down"], ["ArrowRight", "→", "Move right"]].map(([key, label, name]) => <button key={key} className={`dream-button dpad-${key}`} aria-label={name} onPointerDown={event => touchMove(key, event)} onPointerUp={() => held.current.delete(key)} onPointerCancel={() => held.current.delete(key)} onLostPointerCapture={() => held.current.delete(key)} onClick={event => { if (event.detail === 0 && !pausedRef.current && state.current) { movePlayer(state.current, ...keys[key]); syncStats(); save(); } }}>{label}</button>)}</div><div className="dream-tools">{[["kunai", "J", "Kunai"], ["chakra", "K", "Jutsu"], ["mine", "E", "Use / mine"], ["build", "Q", "Build"]].map(([action, key, label]) => <button key={action} className="dream-button" disabled={paused} onClick={() => act(action as Action)}><kbd>{key}</kbd>{label}</button>)}<button className="dream-button" aria-pressed={paused && !journal} disabled={journal} onClick={togglePause}><kbd>P</kbd>{paused && !journal ? "Resume" : "Pause"}</button><button className="dream-button journal-open" aria-expanded={journal} onClick={toggleJournal}><kbd>I</kbd>{journal ? "Close bag" : "Bag"}</button><button className="dream-button dream-more" aria-expanded={moreTools} aria-controls="dream-extra-tools" onClick={() => setMoreTools(!moreTools)}>{moreTools ? "Fewer tools" : "More tools"}</button><div className="dream-extra" id="dream-extra-tools" data-open={moreTools}>{[["dash", "L", "Dash"], ["heal", "H", `Heal (${stats.medicine})`], ["eye", "Space", "Eye"], ["recall", "R", "Recall"], ["recover", "X", "Recover"]].map(([action, key, label]) => <button key={action} className="dream-button" disabled={paused} onClick={() => act(action as Action)}><kbd>{key}</kbd>{label}</button>)}<label className="dream-material">Jutsu<select value={jutsu} onChange={event => { const value = event.target.value as Jutsu; jutsuRef.current = value; setJutsu(value); }}><option value="fire">Fire · 20</option><option value="wind" disabled={stats.scrolls < 1}>Wind · 25{stats.scrolls < 1 ? " (1 scroll)" : ""}</option><option value="lightning" disabled={stats.scrolls < 2}>Lightning · 35{stats.scrolls < 2 ? " (2 scrolls)" : ""}</option></select></label><label className="dream-material">Block<select value={material} onChange={event => { const value = event.target.value as Material; materialRef.current = value; setMaterial(value); }}>{materials.map(m => <option key={m} value={m}>{m === "garden" ? "Herb seeds" : m[0].toUpperCase() + m.slice(1)} ({m === "wood" ? stats.wood : m === "stone" ? stats.stone : world?.inventory[m] ?? 0})</option>)}</select></label></div></div></div><footer className="dream-help"><span>WASD / arrows · J kunai · K jutsu · E interact · Q build · L dash · H heal · R camp · I bag · Tap to aim · Esc return</span><span>Five biomes · Unbounded trails · Camps, ruins, farming and building.</span></footer></>}
+    {phase === "game" && <><div className="dream-status" role={journal ? undefined : "status"}>{journal ? message : paused ? "Paused. Your world is saved; resume when ready." : message}</div><div className="dream-controls" inert={journal || paused}><div className="dream-dpad" aria-label="Movement controls">{[["ArrowUp", "↑", "Move up"], ["ArrowLeft", "←", "Move left"], ["ArrowDown", "↓", "Move down"], ["ArrowRight", "→", "Move right"]].map(([key, label, name]) => <button key={key} className={`dream-button dpad-${key}`} aria-label={name} onPointerDown={event => touchMove(key, event)} onPointerUp={event => pointers.current.delete(event.pointerId)} onPointerCancel={event => pointers.current.delete(event.pointerId)} onLostPointerCapture={event => pointers.current.delete(event.pointerId)} onClick={event => { if (event.detail === 0 && !pausedRef.current && state.current) { movePlayer(state.current, ...directions[key]); syncStats(); save(); } }}>{label}</button>)}</div><div className="dream-touch-actions"><button className="dream-button" onClick={performJump}>Jump</button><button className="dream-button" style={{ touchAction: "none" }} onPointerDown={event => { event.preventDefault(); if (pausedRef.current) return; event.currentTarget.setPointerCapture(event.pointerId); pointers.current.set(event.pointerId, "sprint"); }} onPointerUp={event => pointers.current.delete(event.pointerId)} onPointerCancel={event => pointers.current.delete(event.pointerId)} onLostPointerCapture={event => pointers.current.delete(event.pointerId)}>Hold sprint</button><button className="dream-button touch-primary" onClick={() => act(hotbar[selectedTool][0])}>Use {hotbar[selectedTool][1]}</button><button className="dream-button" onClick={() => act(hotbar[selectedTool][0] === "build" ? "build" : "mine")}>Interact / place</button><button className="dream-button" onClick={toggleJournal}>Inventory</button><button className="dream-button" onClick={togglePause}>Pause</button></div><div className="dream-loadout">{loadout}</div></div><div className="dream-hotbar" inert={journal || paused} role="group" aria-label="Tool hotbar">{hotbar.map(([action, label, key], index) => <button key={action} className="dream-button" aria-pressed={selectedTool === index} onClick={() => selectTool(index)}><kbd>{index + 1} · {key}</kbd>{label}</button>)}</div><footer className="dream-help"><span>WASD / arrows · Shift sprint · Space jump · E inventory · F interact · Q build · J/K combat · G eye · Esc pause</span><span>Primary uses the hotbar · Secondary interacts or places.</span></footer></>}
   </Dialog.Content></Dialog.Portal></Dialog.Root>;
 }

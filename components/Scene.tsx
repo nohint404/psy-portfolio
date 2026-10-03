@@ -9,20 +9,20 @@ import { roomBlocks, minecraftGait, stationPositions } from "@/lib/workshop-room
 import { limbElbow, leverPose, nearestHeading } from "@/lib/character-motion";
 export type { Station } from "@/lib/workshop-route";
 export type SceneHandle = { visit: (id: Station) => void; reset: () => void };
-type Props = { onSelect: (id: Station) => void; selected: Station | null; lit: boolean; suspended: boolean; musicPlaying: boolean; onReady: (success: boolean) => void; onTravel: (id: Station | null) => void; onChidori: () => void; onSeals: () => void; onSleepChange: (sleeping: boolean) => void; controllerRef: Ref<SceneHandle> };
+type Props = { onSelect: (id: Station) => void; selected: Station | null; lit: boolean; suspended: boolean; musicPlaying: boolean; insertedRecord: number | null; onReady: (success: boolean) => void; onTravel: (id: Station | null) => void; onChidori: () => void; onSeals: () => void; onSleepChange: (sleeping: boolean) => void; controllerRef: Ref<SceneHandle> };
 const labels: [Station, string][] = [["about", "Meet Psymariux"], ["psystream", "Explore the PsyStream painting"], ["projects", "Open the project chest"], ["skills", "Explore the crafting table"], ["activity", "Flip the redstone lever and read activity"], ["furnace", "Inspect the active-work furnace"], ["contact", "Open the message book"], ["sleep", "Rest in the cozy bed"], ["jukebox", "Choose a record at the jukebox"]];
 
-export default function Scene({ onSelect, selected, lit, suspended, musicPlaying, onReady, onTravel, onChidori, onSeals, onSleepChange, controllerRef }: Props) {
+export default function Scene({ onSelect, selected, lit, suspended, musicPlaying, insertedRecord, onReady, onTravel, onChidori, onSeals, onSleepChange, controllerRef }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const callbacks = useRef({ onSelect, onTravel, onChidori, onSeals, onSleepChange });
   const current = useRef(selected), previous = useRef(selected), lighting = useRef(lit);
-  const actions = useRef<SceneHandle | null>(null), suspension = useRef(suspended), music = useRef(musicPlaying);
+  const actions = useRef<SceneHandle | null>(null), suspension = useRef(suspended), music = useRef(musicPlaying), insertedDisc = useRef(insertedRecord);
   useImperativeHandle(controllerRef, () => ({ visit: id => actions.current?.visit(id), reset: () => actions.current?.reset() }), []);
   useEffect(() => {
-    callbacks.current = { onSelect, onTravel, onChidori, onSeals, onSleepChange }; current.current = selected; lighting.current = lit; suspension.current = suspended; music.current = musicPlaying;
+    callbacks.current = { onSelect, onTravel, onChidori, onSeals, onSleepChange }; current.current = selected; lighting.current = lit; suspension.current = suspended; music.current = musicPlaying; insertedDisc.current = insertedRecord;
     if (previous.current && !selected) actions.current?.reset();
     previous.current = selected;
-  }, [onSelect, onTravel, onChidori, onSeals, onSleepChange, selected, lit, suspended, musicPlaying]);
+  }, [onSelect, onTravel, onChidori, onSeals, onSleepChange, selected, lit, suspended, musicPlaying, insertedRecord]);
 
   useEffect(() => {
     if (!host.current) return;
@@ -66,12 +66,11 @@ export default function Scene({ onSelect, selected, lit, suspended, musicPlaying
     const chest = station("projects", stationPositions.projects.x, stationPositions.projects.z), chestModel = assets.chest(); chest.add(chestModel.group);
     const bedroom = station("sleep", stationPositions.sleep.x, stationPositions.sleep.z); bedroom.add(assets.bed());
     const jukebox = station("jukebox", stationPositions.jukebox.x, stationPositions.jukebox.z); block("jukebox", 0, 0, 0, jukebox);
-    const recordGeometry = new THREE.CylinderGeometry(.2, .2, .035, 12);
-    const recordMaterial = new THREE.MeshLambertMaterial({ color: "#182025" });
-    const record = new THREE.Mesh(recordGeometry, recordMaterial); record.position.y = 1.025; jukebox.add(record);
-    const recordLabelGeometry = new THREE.BoxGeometry(.09, .04, .09);
-    const recordLabelMaterial = new THREE.MeshLambertMaterial({ color: "#87d4e8" });
-    const recordLabel = new THREE.Mesh(recordLabelGeometry, recordLabelMaterial); record.add(recordLabel);
+    const recordTextures = [assets.texture("/art/disc-sweden.png"), assets.texture("/art/disc-moog-city.png")];
+    const recordGeometry = new THREE.PlaneGeometry(.45, .45);
+    const recordMaterial = new THREE.MeshLambertMaterial({ map: recordTextures[0], transparent: true, alphaTest: .5, side: THREE.DoubleSide });
+    const record = new THREE.Mesh(recordGeometry, recordMaterial); record.rotation.y = Math.PI / 4; record.position.y = .84; record.visible = false; jukebox.add(record);
+    let lastRecord: number | null = null, recordMotion: gsap.core.Timeline | null = null;
     const painting = station("psystream", stationPositions.psystream.x, stationPositions.psystream.z);
     const paintingGeometry = new THREE.PlaneGeometry(1.8, 1.2);
     const paintingMaterial = new THREE.MeshBasicMaterial({ map: assets.texture("/art/psystream-painting.png") });
@@ -438,7 +437,23 @@ export default function Scene({ onSelect, selected, lit, suspended, musicPlaying
       }
       torch.quaternion.copy(torch.parent!.getWorldQuaternion(torchParentRotation)).invert().multiply(torchHeading.setFromAxisAngle(down, -actor.rotation.y));
       if (chidori.visible) updateArcs(time);
-      record.visible = music.current;
+      if (insertedDisc.current !== lastRecord) {
+        const next = insertedDisc.current; lastRecord = next; recordMotion?.kill(); recordMotion = null;
+        if (reduced.matches) {
+          record.visible = next !== null; record.position.y = .84;
+          if (next !== null) recordMaterial.map = recordTextures[next];
+        } else {
+          recordMotion = gsap.timeline();
+          if (record.visible) recordMotion.to(record.position, { y: 1.65, duration: .22, ease: "steps(4)" });
+          recordMotion.call(() => {
+            record.visible = next !== null;
+            if (next !== null) { recordMaterial.map = recordTextures[next]; record.position.y = 1.65; }
+          });
+          if (next !== null) recordMotion.to(record.position, { y: .84, duration: .3, ease: "steps(5)" });
+        }
+      }
+      container.dataset.record = lastRecord === null ? "empty" : String(lastRecord);
+      container.dataset.musicPlaying = String(music.current);
       const powered = lampPowered;
       if (powered !== lastPower) { lamp.traverse(object => { if (object instanceof THREE.Mesh) object.material = powered ? lampLit : lampDark; }); lastPower = powered; }
       signalLight.intensity = powered ? 4 : 0;
@@ -458,12 +473,12 @@ export default function Scene({ onSelect, selected, lit, suspended, musicPlaying
     }
     camera.lookAt(focus); raf = requestAnimationFrame(draw);
     return () => {
-      alive = false; sequence?.kill(); actions.current = null; cancelAnimationFrame(raf); resize.disconnect(); observer.disconnect();
+      alive = false; sequence?.kill(); recordMotion?.kill(); actions.current = null; cancelAnimationFrame(raf); resize.disconnect(); observer.disconnect();
       container.removeEventListener("pointermove", move); container.removeEventListener("pointerleave", leave); container.removeEventListener("click", click as EventListener); window.removeEventListener("keydown", escape);
       renderer.domElement.removeEventListener("webglcontextlost", contextLost); renderer.domElement.removeEventListener("webglcontextrestored", contextRestored);
       sparkGeometry.dispose(); sparkMaterial.dispose(); coreMaterial.dispose(); arcs.dispose(); arcGeometry.dispose(); arcMaterial.dispose();
       paintingGeometry.dispose(); paintingMaterial.dispose();
-      recordGeometry.dispose(); recordMaterial.dispose(); recordLabelGeometry.dispose(); recordLabelMaterial.dispose();
+      recordGeometry.dispose(); recordMaterial.dispose();
       bookGeometry.dispose(); bookMaterial.dispose(); dustGeometry.dispose(); dustMaterial.dispose(); skinMaterial.dispose(); assets.dispose(); renderer.dispose(); renderer.domElement.remove();
     };
   }, [onReady]);

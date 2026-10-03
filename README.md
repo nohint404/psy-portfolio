@@ -1,12 +1,10 @@
 <div align="center">
 
-# PSYMARIUX<br />DEVELOPER WORKSHOP
+# Psymariux's workshop
 
-**A personal portfolio you can walk through.**
+My projects and GitHub activity in a Minecraft workshop.
 
-Stone walls, oak beams, a real project chest—and the code behind the room.
-
-[Repository](https://github.com/nohint404/psy-portfolio) · [GitHub profile](https://github.com/nohint404) · [PsyStream](https://stream.psymariux.dev)
+[Repository](https://github.com/psymariux/psy-portfolio) · [GitHub profile](https://github.com/psymariux) · [PsyStream](https://stream.psymariux.dev)
 
 </div>
 
@@ -16,36 +14,36 @@ Stone walls, oak beams, a real project chest—and the code behind the room.
 
 <p align="center"><sub>The room is the navigation: approach a workstation to open the real project, activity or contact panel.</sub></p>
 
----
+## Exploring the portfolio
 
-## A portfolio with a point of view
+Select a workstation to open a project, inspect recent work or send me a message. The character walks to it and interacts with the object. A labeled shelf provides the same controls for keyboard and phone users. Ctrl/Cmd+K searches destinations and the public repositories already on the page.
 
-I built my portfolio as a little Minecraft workshop rather than a row of software cards. Walk up to the project chest, crafting table, furnace, redstone lamp, message book or PsyStream poster; the character finds a clear route, interacts with the object and opens the matching panel. A labeled shelf keeps the same destinations easy to reach with a keyboard or on a phone. **Ctrl/Cmd+K** searches those destinations and the public repositories already on the page.
-
-**Psymariux** is my developer identity. The portfolio uses **[@nohint404](https://github.com/nohint404)** as its GitHub data source.
+The GitHub data comes from [@psymariux](https://github.com/psymariux).
 
 ### Inside the room
 
 - A Three.js scene built from locally resolved Minecraft Java 1.21.4 models, with the verified PsyMariux skin, a working redstone lever and a hinged chest.
 - Real public GitHub projects, repository details and recent activity; an explicit fork disclosure keeps upstream work separate from my own.
-- [PsyStream](https://stream.psymariux.dev), my closed-source streaming project, shown as its own product—not passed off as a public repository.
-- An optional, saveable shinobi sandbox hidden behind **sleep → wake → sleep**. Its authored village opens onto seeded, procedurally generated terrain, with quests, crafting, combat, farming and building.
+- [PsyStream](https://stream.psymariux.dev), my closed-source streaming project, has a separate section.
+- An optional, saveable shinobi sandbox hidden behind sleep, wake, then sleep again. Its authored village opens onto seeded, procedurally generated terrain, with quests, crafting, combat, farming and building.
 
 <sub>The screenshot uses Minecraft game artwork and a personal skin. Their owners retain their rights; the repository’s AGPL-3.0 license does not relicense those assets. See the image and asset provenance.</sub>
 
-## The quieter details
+## Room interactions
 
-The room is not just a picture with hotspots. Each destination uses obstacle-aware routes from the character’s current position; the lever interaction reaches for its handle, grips, flips and releases it. The switch state persists when the panel closes. If WebGL cannot start, a captured room preview and the labeled object shelf remain available.
+The character follows obstacle-aware routes from its current position. At the redstone lever, it reaches for the handle, grips it, flips the switch and releases it. The switch state persists when the panel closes. If WebGL cannot start, a captured room preview and the labeled object shelf remain available.
 
-The optional game is a separate, full-screen Canvas experience. It starts with a fixed authored village, then streams deterministic terrain in all directions. Generated chunks are cached within a bound; player-made changes and discoveries are saved. Progress stays in the browser, with validated import/export rather than a server account.
+The optional game is a separate, full-screen Canvas experience. It starts with a fixed authored village, then streams deterministic terrain in all directions. Generated chunks are cached within a bound; player-made changes and discoveries are saved. Progress stays in the browser, with validated import/export rather than a server account. WASD/arrows move, Shift sprints, Space jumps two clear tiles, and E/I opens inventory. Number keys or the mouse wheel select one of nine hotbar tools; primary click uses it and secondary click interacts or builds. Escape opens a pause menu with controls, sound and save/return. Movement, jump, held sprint, tools and menus also have touch controls.
 
-## A quiet record
+Trail pavers and kiln bricks can be crafted, placed and recovered. Three frontier missions reward exploration, construction and resource gathering/combat; each reward can be claimed once. Existing saves retain their progress. The simulation and its visual animations stop during menus, and losing focus pauses without automatically resuming.
 
-A lower-right jukebox tab opens a timber-framed pixel side panel, also reachable from the vanilla jukebox in the room or quick navigation. It is separate from the object shelf and page rows. **Tap the displayed disc to play; tap again to pause.** Choose C418’s **Sweden** or **Moog City**, or let them alternate at the end of each track. Two lever buttons adjust volume in 5% steps (20% initially). Closing the panel keeps the music playing; Escape closes and returns focus to its tab.
+## Jukebox
 
-Interaction sound effects unlock on the first real click/touch or keyboard gesture and can still be muted in the header. Music stays off until you tap the disc. Local MP3s load only on demand—no iframe or external player. Hiding the tab or entering the dream pauses playback without automatically restarting it. Track sources, hashes and rights caveats are recorded in `public/audio/`; the project’s code license does not cover these recordings and their redistribution license has not been independently verified.
+A lower-right jukebox tab opens a timber-framed pixel side panel, also reachable from the vanilla jukebox in the room or quick navigation. It is separate from the object shelf and page rows. Tap the displayed disc to play; tap again to pause. Choose C418’s Sweden or Moog City, or let them alternate at the end of each track. The disc slides into both the side player and room block; pause leaves it inserted, while Eject disc stops playback, unloads the recording and lifts it out. A native slider beside the block adjusts volume from 0–100% in 5% steps (20% initially). Closing the panel keeps the music playing; Escape closes and returns focus to its tab.
 
-## How the pieces fit
+Interaction sound effects unlock on the first real click/touch or keyboard gesture and can still be muted in the header. Music stays off until you tap the disc. Local MP3s load only on demand, without an iframe or external player. Hiding the tab or entering the dream pauses playback without automatically restarting it. Track sources, hashes and rights caveats are recorded in `public/audio/`; the project’s code license does not cover these recordings and their redistribution license has not been independently verified.
+
+## Architecture
 
 The page is server-rendered around a client-side workshop. Public GitHub data is normalized on the server; interactive scenes load only where they are used. The portfolio view, 3D room and sandbox share one experience without sharing a simulation loop.
 
@@ -61,25 +59,23 @@ flowchart LR
   Contact -. optional webhook .-> Discord[Discord]
 ```
 
-### The decisions that shape it
+### Behavior and boundaries
 
-- **The room is functional UI.** One obstacle-aware route planner handles the character’s walks; the eight-object shelf is its keyboard/touch equivalent; the room jukebox also has its own side control. Reduced-motion preferences skip travel and authored transitions.
-- **The GitHub feed is public by construction.** The server paginates repositories, normalizes selected public data, filters activity to the account owner, and uses a checked-in snapshot if the API is unavailable. An optional `GITHUB_TOKEN` stays server-side; private repository data is checked again before serialization.
-- **The hidden game keeps its own rules.** `lib/ninja-game.ts` owns simulation and save validation, `lib/ninja-world.ts` owns deterministic terrain, and `lib/ninja-render.ts` draws the pixel world. A bounded generated-chunk cache avoids storing every tile; versioned browser saves preserve player changes.
-- **The contact book does not fake a send.** `DISCORD_WEBHOOK_URL` is optional. Without it, the form returns an explicit unavailable response; the route also checks origin, validates input, and limits requests in-process.
-- **The world has multiple owners.** Vanilla Minecraft models and textures, the personal skin, PsyStream branding and source-labeled audio keep their own provenance. AGPL-3.0 applies to this project’s licensed code, not third-party artwork or audio.
+- One route planner handles character movement. The eight-object shelf provides keyboard and touch controls; the jukebox has a separate side control. Reduced motion skips travel and transitions.
+- The server paginates public repositories owned by `psymariux` and recognizes personal commits under both that login and the former `nohint404` author name. `GITHUB_TOKEN` stays server-side. An anonymous visibility check excludes repositories that became private during collection.
+- `lib/ninja-game.ts` owns simulation and save validation, `lib/ninja-world.ts` generates terrain, and `lib/ninja-render.ts` draws it. A bounded chunk cache holds generated terrain; versioned browser saves store player changes.
+- The contact route checks origin, validates input and limits requests in-process. Without `DISCORD_WEBHOOK_URL`, it reports that delivery is unavailable.
+- Minecraft artwork, the personal skin, PsyStream branding and audio retain their owners' rights and provenance. AGPL-3.0 covers the project's licensed code.
 
 ## How it is built
 
-- **Next.js 16 App Router, React 19 and TypeScript** render the portfolio and its server-side data routes.
-- **Three.js** draws the walkable workshop; **GSAP** coordinates character, camera and object interactions.
-- The hidden game uses **Canvas 2D**, keeping world simulation, deterministic terrain and rendering in separate modules.
-- **Radix Dialog** handles accessible panels and the game shell. Tailwind CSS 4 and local CSS provide the pixel-workshop styling.
+- Next.js 16 App Router, React 19 and TypeScript render the portfolio and its server-side data routes.
+- Three.js draws the walkable workshop; GSAP coordinates character, camera and object interactions.
+- The hidden game uses Canvas 2D, keeping world simulation, deterministic terrain and rendering in separate modules.
+- Radix Dialog handles accessible panels and the game shell. Tailwind CSS 4 and local CSS provide the pixel-workshop styling.
 - GitHub data is fetched server-side, normalized before display and cached for 30 minutes. A checked-in public snapshot is the outage/rate-limit fallback; no private repository data is exposed.
 
 ### Application source map
-
-The paths below point to the application source files in this repository.
 
 | Path | What lives there |
 | --- | --- |
@@ -98,7 +94,7 @@ The paths below point to the application source files in this repository.
 The application uses Node.js 22.18+ and npm (`package-lock.json`). Clone this repository, then run:
 
 ```sh
-git clone https://github.com/nohint404/psy-portfolio.git
+git clone https://github.com/psymariux/psy-portfolio.git
 cd psy-portfolio
 npm ci
 cp .env.example .env.local
