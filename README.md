@@ -41,9 +41,9 @@ The optional game is a separate, full-screen Canvas experience. It starts with a
 
 ## A quiet record
 
-A vanilla Minecraft jukebox in the room opens a timber-framed pixel miniplayer. C418’s **Sweden** and **Moog City** alternate at the end of each track; choose either disc, pause, skip or adjust the volume (20% by default).
+A lower-right jukebox tab opens a timber-framed pixel side panel, also reachable from the vanilla jukebox in the room or quick navigation. It is separate from the object shelf and page rows. **Tap the displayed disc to play; tap again to pause.** Choose C418’s **Sweden** or **Moog City**, or let them alternate at the end of each track. Two lever buttons adjust volume in 5% steps (20% initially). Closing the panel keeps the music playing; Escape closes and returns focus to its tab.
 
-Music is off until you press Play, independent of interaction sound effects. Local MP3s load only on demand—no iframe or external player. Hiding the tab or entering the dream pauses playback without automatically restarting it. Track sources, hashes and rights caveats are recorded in `public/audio/`; the project’s code license does not cover these recordings and their redistribution license has not been independently verified.
+Interaction sound effects unlock on the first real click/touch or keyboard gesture and can still be muted in the header. Music stays off until you tap the disc. Local MP3s load only on demand—no iframe or external player. Hiding the tab or entering the dream pauses playback without automatically restarting it. Track sources, hashes and rights caveats are recorded in `public/audio/`; the project’s code license does not cover these recordings and their redistribution license has not been independently verified.
 
 ## How the pieces fit
 
@@ -63,7 +63,7 @@ flowchart LR
 
 ### The decisions that shape it
 
-- **The room is functional UI.** One obstacle-aware route planner handles the character’s walks; the nine-object shelf is its keyboard/touch equivalent. Reduced-motion preferences skip travel and authored transitions.
+- **The room is functional UI.** One obstacle-aware route planner handles the character’s walks; the eight-object shelf is its keyboard/touch equivalent; the room jukebox also has its own side control. Reduced-motion preferences skip travel and authored transitions.
 - **The GitHub feed is public by construction.** The server paginates repositories, normalizes selected public data, filters activity to the account owner, and uses a checked-in snapshot if the API is unavailable. An optional `GITHUB_TOKEN` stays server-side; private repository data is checked again before serialization.
 - **The hidden game keeps its own rules.** `lib/ninja-game.ts` owns simulation and save validation, `lib/ninja-world.ts` owns deterministic terrain, and `lib/ninja-render.ts` draws the pixel world. A bounded generated-chunk cache avoids storing every tile; versioned browser saves preserve player changes.
 - **The contact book does not fake a send.** `DISCORD_WEBHOOK_URL` is optional. Without it, the form returns an explicit unavailable response; the route also checks origin, validates input, and limits requests in-process.
