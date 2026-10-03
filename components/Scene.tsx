@@ -9,20 +9,20 @@ import { roomBlocks, minecraftGait, stationPositions } from "@/lib/workshop-room
 import { limbElbow, leverPose, nearestHeading } from "@/lib/character-motion";
 export type { Station } from "@/lib/workshop-route";
 export type SceneHandle = { visit: (id: Station) => void; reset: () => void };
-type Props = { onSelect: (id: Station) => void; selected: Station | null; lit: boolean; suspended: boolean; onReady: (success: boolean) => void; onTravel: (id: Station | null) => void; onChidori: () => void; onSeals: () => void; onSleepChange: (sleeping: boolean) => void; controllerRef: Ref<SceneHandle> };
-const labels: [Station, string][] = [["about", "Meet Psymariux"], ["psystream", "Explore the PsyStream painting"], ["projects", "Open the project chest"], ["skills", "Explore the crafting table"], ["activity", "Flip the redstone lever and read activity"], ["furnace", "Inspect the active-work furnace"], ["contact", "Open the message book"], ["sleep", "Rest in the cozy bed"]];
+type Props = { onSelect: (id: Station) => void; selected: Station | null; lit: boolean; suspended: boolean; musicPlaying: boolean; onReady: (success: boolean) => void; onTravel: (id: Station | null) => void; onChidori: () => void; onSeals: () => void; onSleepChange: (sleeping: boolean) => void; controllerRef: Ref<SceneHandle> };
+const labels: [Station, string][] = [["about", "Meet Psymariux"], ["psystream", "Explore the PsyStream painting"], ["projects", "Open the project chest"], ["skills", "Explore the crafting table"], ["activity", "Flip the redstone lever and read activity"], ["furnace", "Inspect the active-work furnace"], ["contact", "Open the message book"], ["sleep", "Rest in the cozy bed"], ["jukebox", "Choose a record at the jukebox"]];
 
-export default function Scene({ onSelect, selected, lit, suspended, onReady, onTravel, onChidori, onSeals, onSleepChange, controllerRef }: Props) {
+export default function Scene({ onSelect, selected, lit, suspended, musicPlaying, onReady, onTravel, onChidori, onSeals, onSleepChange, controllerRef }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const callbacks = useRef({ onSelect, onTravel, onChidori, onSeals, onSleepChange });
   const current = useRef(selected), previous = useRef(selected), lighting = useRef(lit);
-  const actions = useRef<SceneHandle | null>(null), suspension = useRef(suspended);
+  const actions = useRef<SceneHandle | null>(null), suspension = useRef(suspended), music = useRef(musicPlaying);
   useImperativeHandle(controllerRef, () => ({ visit: id => actions.current?.visit(id), reset: () => actions.current?.reset() }), []);
   useEffect(() => {
-    callbacks.current = { onSelect, onTravel, onChidori, onSeals, onSleepChange }; current.current = selected; lighting.current = lit; suspension.current = suspended;
+    callbacks.current = { onSelect, onTravel, onChidori, onSeals, onSleepChange }; current.current = selected; lighting.current = lit; suspension.current = suspended; music.current = musicPlaying;
     if (previous.current && !selected) actions.current?.reset();
     previous.current = selected;
-  }, [onSelect, onTravel, onChidori, onSeals, onSleepChange, selected, lit, suspended]);
+  }, [onSelect, onTravel, onChidori, onSeals, onSleepChange, selected, lit, suspended, musicPlaying]);
 
   useEffect(() => {
     if (!host.current) return;
@@ -65,6 +65,13 @@ export default function Scene({ onSelect, selected, lit, suspended, onReady, onT
     const furnace = station("furnace", stationPositions.furnace.x, stationPositions.furnace.z); block("furnace_on", 0, 0, 0, furnace).rotation.y = Math.PI;
     const chest = station("projects", stationPositions.projects.x, stationPositions.projects.z), chestModel = assets.chest(); chest.add(chestModel.group);
     const bedroom = station("sleep", stationPositions.sleep.x, stationPositions.sleep.z); bedroom.add(assets.bed());
+    const jukebox = station("jukebox", stationPositions.jukebox.x, stationPositions.jukebox.z); block("jukebox", 0, 0, 0, jukebox);
+    const recordGeometry = new THREE.CylinderGeometry(.2, .2, .035, 12);
+    const recordMaterial = new THREE.MeshLambertMaterial({ color: "#182025" });
+    const record = new THREE.Mesh(recordGeometry, recordMaterial); record.position.y = 1.025; jukebox.add(record);
+    const recordLabelGeometry = new THREE.BoxGeometry(.09, .04, .09);
+    const recordLabelMaterial = new THREE.MeshLambertMaterial({ color: "#87d4e8" });
+    const recordLabel = new THREE.Mesh(recordLabelGeometry, recordLabelMaterial); record.add(recordLabel);
     const painting = station("psystream", stationPositions.psystream.x, stationPositions.psystream.z);
     const paintingGeometry = new THREE.PlaneGeometry(1.8, 1.2);
     const paintingMaterial = new THREE.MeshBasicMaterial({ map: assets.texture("/art/psystream-painting.png") });
@@ -401,7 +408,7 @@ export default function Scene({ onSelect, selected, lit, suspended, onReady, onT
       renderer.setSize(Math.max(1, Math.floor(width)), Math.max(1, Math.floor(height)), false); camera.updateProjectionMatrix(); sized = width > 0 && height > 0;
     }); resize.observe(container);
     const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }); observer.observe(container);
-    const heights: Record<Station, number> = { about: 1.4, psystream: 2.5, projects: .6, skills: .7, activity: .65, furnace: .7, contact: .9, sleep: .55 };
+    const heights: Record<Station, number> = { about: 1.4, psystream: 2.5, projects: .6, skills: .7, activity: .65, furnace: .7, contact: .9, sleep: .55, jukebox: .85 };
     const projected = new THREE.Vector3();
     function draw(time: number) {
       if (!alive) return;
@@ -431,6 +438,7 @@ export default function Scene({ onSelect, selected, lit, suspended, onReady, onT
       }
       torch.quaternion.copy(torch.parent!.getWorldQuaternion(torchParentRotation)).invert().multiply(torchHeading.setFromAxisAngle(down, -actor.rotation.y));
       if (chidori.visible) updateArcs(time);
+      record.visible = music.current;
       const powered = lampPowered;
       if (powered !== lastPower) { lamp.traverse(object => { if (object instanceof THREE.Mesh) object.material = powered ? lampLit : lampDark; }); lastPower = powered; }
       signalLight.intensity = powered ? 4 : 0;
@@ -455,12 +463,13 @@ export default function Scene({ onSelect, selected, lit, suspended, onReady, onT
       renderer.domElement.removeEventListener("webglcontextlost", contextLost); renderer.domElement.removeEventListener("webglcontextrestored", contextRestored);
       sparkGeometry.dispose(); sparkMaterial.dispose(); coreMaterial.dispose(); arcs.dispose(); arcGeometry.dispose(); arcMaterial.dispose();
       paintingGeometry.dispose(); paintingMaterial.dispose();
+      recordGeometry.dispose(); recordMaterial.dispose(); recordLabelGeometry.dispose(); recordLabelMaterial.dispose();
       bookGeometry.dispose(); bookMaterial.dispose(); dustGeometry.dispose(); dustMaterial.dispose(); skinMaterial.dispose(); assets.dispose(); renderer.dispose(); renderer.domElement.remove();
     };
   }, [onReady]);
 
   return <div className="voxel-canvas" ref={host} role="group" aria-label="Interactive Minecraft workshop room">
-    {labels.map(([id, label]) => <button key={id} data-station={id} className="world-hotspot" aria-label={label} aria-haspopup={id === "sleep" ? undefined : "dialog"} onClick={() => actions.current?.visit(id)}><span>{label}</span></button>)}
+    {labels.map(([id, label]) => <button key={id} data-station={id} className="world-hotspot" aria-label={label} aria-haspopup={id === "sleep" || id === "jukebox" ? undefined : "dialog"} onClick={() => actions.current?.visit(id)}><span>{label}</span></button>)}
     <span className="jutsu-caption" aria-hidden="true" />
   </div>;
 }
